@@ -1,10 +1,6 @@
 package api
 
-// Request
-
-type Request struct {
-}
-
+// REQUEST
 type Registration struct {
 	Username    string  `json:"username"`
 	Name        string  `json:"name"`
@@ -29,5 +25,20 @@ type ValidateToken struct {
 	AccessToken string `header:"Authorization"`
 }
 
-type Response struct {
+// RESPONSE
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+type AccessTokenResponse struct {
+	AccessToken string `json:"access_token"`
+}
+
+type ValidateResponse struct {
+	Valid bool `json:"valid"`
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
 }

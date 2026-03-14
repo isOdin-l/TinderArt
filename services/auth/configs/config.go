@@ -5,24 +5,32 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
-	echojwt "github.com/labstack/echo-jwt/v5"
 )
 
 type Config struct {
-	ServerPort string `env:"SERVER_PORT"`
+	DatabaseConfig
+	ServerConfig
+	InternalConfig
+}
+
+type DatabaseConfig struct {
 	DbPassword string `env:"DB_PASSWORD"`
 	DbUserName string `env:"DB_USERNAME"`
 	DbHost     string `env:"DB_HOST"`
 	DbPort     string `env:"DB_PORT"`
 	DbName     string `env:"DB_NAME"`
-	InternalConfig
+}
+
+type ServerConfig struct {
+	ServerPort string `env:"SERVER_PORT"`
 }
 
 type InternalConfig struct {
-	HashMinCost int           `env:"COST"`
-	JwtSignKey  string        `env:"JWT_SIGNING_KEY"`
-	TokenTTL    time.Duration `env:"TOKEN_TTL"`
-	JwtConfig   echojwt.Config
+	HashMinCost     int           `env:"HASH_MIN_COST"`
+	AccessSignKey   string        `env:"ACCESS_SIGNING_KEY"`
+	RefreshSignKey  string        `env:"REFRESH_SIGNING_KEY"`
+	AccessTokenTTL  time.Duration `env:"ACCESS_TOKEN_TTL"`
+	RefreshTokenTTL time.Duration `env:"REFRESH_TOKEN_TTL"`
 }
 
 func NewConfig() (Config, error) {

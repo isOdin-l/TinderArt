@@ -30,12 +30,13 @@ func main() {
 	DB, errDb := postgresql.NewPostgresDB(&cfg)
 	if errDb != nil {
 		router.Logger.Error(fmt.Sprintf("failed to initialize db: %s", errDb.Error()))
+		return
 	}
 	defer DB.Close()
 
-	repository := repository.NewRepository(DB)                     //  Repository
-	service := service.NewService(&cfg.InternalConfig, repository) //  Service
-	handler := handler.NewHandler(service)                         //  Handler
+	repository := repository.NewRepository(DB)                         //  Repository
+	service := service.NewService(&cfg.InternalConfig, repository, DB) //  Service
+	handler := handler.NewHandler(service)                             //  Handler
 
 	// Definition context for server's graceful shutdown
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

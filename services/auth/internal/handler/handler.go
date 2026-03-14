@@ -29,46 +29,58 @@ func NewHandler(service IService) *AuthHandler {
 func (h *AuthHandler) Registrations(c *echo.Context) error {
 	userApi := new(api.Registration)
 	if errBind := c.Bind(&userApi); errBind != nil {
-		return c.JSON(http.StatusBadRequest, "")
+		return c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "invalid request"})
 	}
 
-	h.service.Registrations(c.Request().Context(), mappers.FromAPIRegistrationToRegistration(userApi))
+	entity := mappers.FromAPIRegistrationToRegistration(userApi)
+	if err := h.service.Registrations(c.Request().Context(), entity); err != nil {
+		return c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: err.Error()})
+	}
 
-	return nil
+	return c.JSON(http.StatusOK, mappers.FromRegistrationToTokenResponse(entity))
 }
 
 // Get new access_token and refresh_token, when both expired
 func (h *AuthHandler) SignIn(c *echo.Context) error {
 	userApi := new(api.Login)
 	if errBind := c.Bind(&userApi); errBind != nil {
-		return c.JSON(http.StatusBadRequest, "")
+		return c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "invalid request"})
 	}
 
-	h.service.Login(c.Request().Context(), mappers.FromAPILoginToLogin(userApi))
+	entity := mappers.FromAPILoginToLogin(userApi)
+	if err := h.service.Login(c.Request().Context(), entity); err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: err.Error()})
+	}
 
-	return nil
+	return c.JSON(http.StatusOK, mappers.FromLoginToTokenResponse(entity))
 }
 
 // Update access_token by refresh_token
 func (h *AuthHandler) RefreshToken(c *echo.Context) error {
 	tokenReq := new(api.RefreshAccessToken)
 	if errBind := c.Bind(&tokenReq); errBind != nil {
-		return c.JSON(http.StatusBadRequest, "")
+		return c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "invalid request"})
 	}
 
-	h.service.RefreshAccessToken(c.Request().Context(), mappers.FromAPIRefreshTokenToRefreshToken(tokenReq))
+	entity := mappers.FromAPIRefreshTokenToRefreshToken(tokenReq)
+	if err := h.service.RefreshAccessToken(c.Request().Context(), entity); err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: err.Error()})
+	}
 
-	return nil
+	return c.JSON(http.StatusOK, mappers.FromRefreshAccessTokenToTokenResponse(entity))
 }
 
 // Validate access_token
 func (h *AuthHandler) ValidateToken(c *echo.Context) error {
 	accessToken := new(api.ValidateToken)
 	if errBind := c.Bind(&accessToken); errBind != nil {
-		return c.JSON(http.StatusUnauthorized, "")
+		return c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: "missing token"})
 	}
 
-	h.service.ValidateAccessToken(c.Request().Context(), mappers.FromAPIValidateTokenToValidateToken(accessToken))
+	entity := mappers.FromAPIValidateTokenToValidateToken(accessToken)
+	if err := h.service.ValidateAccessToken(c.Request().Context(), entity); err != nil {
+		return c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: err.Error()})
+	}
 
-	return nil
+	return c.JSON(http.StatusOK, api.ValidateResponse{Valid: true})
 }

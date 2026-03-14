@@ -6,8 +6,8 @@ import (
 )
 
 // Function design:
-// FromAPI<RequestModel>To<EntityName>  (req *grpc_gen.<RequestModel>) *<EntityName>
-// From<EntityName>ToAPI<ResponseModel> (req *<EntityName>) *grpc_gen.<ResponseModel>
+// FromAPI<RequestModel>To<EntityName>  (req *api.<RequestModel>) *<EntityName>
+// From<EntityName>ToAPI<ResponseModel> (req *<EntityName>) *api.<ResponseModel>
 
 // --------- Request ---------
 func FromAPIValidateTokenToValidateToken(req *api.ValidateToken) *entities.ValidateToken {
@@ -43,3 +43,30 @@ func FromAPIRefreshTokenToRefreshToken(req *api.RefreshAccessToken) *entities.Re
 }
 
 // --------- Response ---------
+func FromLoginToTokenResponse(login *entities.Login) *api.TokenResponse {
+	return &api.TokenResponse{
+		AccessToken:  login.AccessToken,
+		RefreshToken: login.AccessToken,
+	}
+}
+
+func FromAuthResultToTokenResponse(result *entities.AuthResult) *api.TokenResponse {
+	return &api.TokenResponse{
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+	}
+}
+
+func FromRegistrationToTokenResponse(reg *entities.Registration) *api.TokenResponse {
+	return &api.TokenResponse{
+		AccessToken:  reg.AccessToken,
+		RefreshToken: reg.RefreshToken,
+	}
+}
+
+func FromRefreshAccessTokenToTokenResponse(refresh *entities.RefreshAccessToken) *api.TokenResponse {
+	return &api.TokenResponse{
+		AccessToken:  refresh.AccessToken,
+		RefreshToken: refresh.RefreshToken,
+	}
+}

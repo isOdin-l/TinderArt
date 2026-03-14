@@ -2,29 +2,56 @@ package repository
 
 import (
 	"context"
+	"errors"
 
+	"github.com/google/uuid"
+	builder "github.com/isOdin-l/TinderArt/services/auth/internal/database/sqlc"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/entities"
 	"github.com/jackc/pgx/v5"
 )
 
-type IDatabase interface {
-	Exec(ctx context.Context, sql string, args ...interface{}) error
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
-	Scan(row pgx.Row, dest ...any) error
-	Close()
-}
+var (
+	ErrNotFound = errors.New("not found")
+)
 
 type AuthRepository struct {
-	db IDatabase
+	q *builder.Queries
 }
 
-func NewRepository(db IDatabase) *AuthRepository {
-	return &AuthRepository{db: db}
+func NewRepository(db builder.DBTX) *AuthRepository {
+	return &AuthRepository{q: builder.New(db)}
 }
 
-func (r *AuthRepository) GetUser() (*entities.Login, error) {
-	return nil, nil
+func (r *AuthRepository) GetUserByUsername(ctx context.Context, username string) (*entities.Login, error) {
+	row, err := r.q.GetUserByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &entities.Login{
+		UserId:   FromPgUUID(&row.ID),
+		Password: row.Password,
+	}, nil
 }
-func (r *AuthRepository) GetRefreshToken() {
 
+func (r *AuthRepository) SaveRefreshToken(ctx context.Context, userId uuid.UUID, refreshToken string) error {
+	return r.q.SaveRefreshToken(ctx,
+		builder.SaveRefreshTokenParams{
+			ID:           ToPgUUID(&userId),
+			RefreshToken: refreshToken,
+		},
+	)
+}
+
+func (r *AuthRepository) GetRefreshToken(ctx context.Context, userId uuid.UUID) (string, error) {
+	token, err := r.q.GetRefreshToken(ctx, ToPgUUID(&userId))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", ErrNotFound
+		}
+		return "", err
+	}
+	return token, nil
 }
