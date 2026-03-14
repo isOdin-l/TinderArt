@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	echojwt "github.com/labstack/echo-jwt/v5"
 )
 
 type Config struct {
@@ -18,9 +19,10 @@ type Config struct {
 }
 
 type InternalConfig struct {
-	Salt       string        `env:"SALT"`
-	JwtSignKey string        `env:"JWT_SIGNING_KEY"`
-	TokenTTL   time.Duration `env:"TOKEN_TTL"`
+	HashMinCost int           `env:"COST"`
+	JwtSignKey  string        `env:"JWT_SIGNING_KEY"`
+	TokenTTL    time.Duration `env:"TOKEN_TTL"`
+	JwtConfig   echojwt.Config
 }
 
 func NewConfig() (Config, error) {

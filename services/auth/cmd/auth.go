@@ -41,7 +41,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	server.NewRouter(router, handler) //  Routing
+	server.NewRouter(router, &cfg, handler) //  Routing
 	if err := server.RunServer(router, &ctx, fmt.Sprintf(":%s", cfg.ServerPort)); err != nil {
 		router.Logger.Error(fmt.Sprintf("Error while running server %s", err.Error()))
 	}

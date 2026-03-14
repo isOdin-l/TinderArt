@@ -53,6 +53,7 @@ Notify --> | Notify users on diff platforms | ExternalApis
 | Field | Type |
 |---|---|
 | Id | uuid |
+| Username | Text |
 | Name | Text |
 | Surname | Text |
 | Email | Text |

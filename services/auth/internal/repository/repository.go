@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/isOdin-l/TinderArt/services/auth/internal/entities"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -19,4 +20,11 @@ type AuthRepository struct {
 
 func NewRepository(db IDatabase) *AuthRepository {
 	return &AuthRepository{db: db}
+}
+
+func (r *AuthRepository) GetUser() (*entities.Login, error) {
+	return nil, nil
+}
+func (r *AuthRepository) GetRefreshToken() {
+
 }
