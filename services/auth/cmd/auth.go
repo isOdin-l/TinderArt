@@ -34,16 +34,23 @@ func main() {
 	}
 	defer DB.Close()
 
-	repository := repository.NewRepository(DB)                         //  Repository
-	service := service.NewService(&cfg.InternalConfig, repository, DB) //  Service
-	handler := handler.NewHandler(service)                             //  Handler
+	grpcClient, errGrpc := server.NewGrpcClient(&cfg.ServerConfig)
+	if errGrpc != nil {
+		router.Logger.Error(fmt.Sprintf("failed to connect to grpc server: %s", errGrpc.Error()))
+		return
+	}
+	defer grpcClient.Conn.Close()
+
+	repository := repository.NewRepository(DB)                                     //  Repository
+	service := service.NewService(&cfg.InternalConfig, repository, DB, grpcClient) //  Service
+	handler := handler.NewHandler(service)                                         //  Handler
 
 	// Definition context for server's graceful shutdown
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	server.NewRouter(router, &cfg, handler) //  Routing
-	if err := server.RunServer(router, &ctx, fmt.Sprintf(":%s", cfg.ServerPort)); err != nil {
+	if err := server.RunServer(router, &ctx, &cfg.ServerConfig); err != nil {
 		router.Logger.Error(fmt.Sprintf("Error while running server %s", err.Error()))
 	}
 }

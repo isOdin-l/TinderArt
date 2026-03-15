@@ -9,6 +9,8 @@ import (
 	"github.com/google/uuid"
 	config "github.com/isOdin-l/TinderArt/services/auth/configs"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/entities"
+	"github.com/isOdin-l/TinderArt/services/auth/internal/server"
+	grpc_gen "github.com/isOdin-l/TinderArt/services/auth/pkg/grpc/grpc-gen"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -28,19 +30,20 @@ type TxManager interface {
 }
 
 type AuthService struct {
-	cfg  *config.InternalConfig
-	repo IRepo
-	txm  TxManager
+	cfg        *config.InternalConfig
+	grpcCleint *server.GrpcClient
+	repo       IRepo
+	txm        TxManager
 }
 
-func NewService(cfg *config.InternalConfig, repo IRepo, txm TxManager) *AuthService {
-	return &AuthService{cfg: cfg, repo: repo, txm: txm}
+func NewService(cfg *config.InternalConfig, repo IRepo, txm TxManager, grpcClient *server.GrpcClient) *AuthService {
+	return &AuthService{cfg: cfg, repo: repo, txm: txm, grpcCleint: grpcClient}
 }
 
 func (s *AuthService) Registrations(ctx context.Context, entity *entities.Registration) error {
 	_, errTx := s.txm.WithTx(ctx, func(ctx context.Context) (any, error) {
 		// Check username uniqueness
-		_, err := s.repo.GetUserByUsername(ctx, entity.Username)
+		userDb, err := s.repo.GetUserByUsername(ctx, entity.Username)
 		if err != nil {
 			if !errors.Is(err, pgx.ErrNoRows) {
 				return nil, err
@@ -58,9 +61,21 @@ func (s *AuthService) Registrations(ctx context.Context, entity *entities.Regist
 		if err != nil {
 			return nil, err
 		}
+
 		// Call Profile service via gRPC to create user profile
-		if err := s.gRPCCreateUser(ctx, entity); err != nil {
-			return nil, err
+		res, errCall := s.grpcCleint.Client.CreateUser(ctx,
+			&grpc_gen.CreateUserRequest{
+				UserId:      userDb.UserId.String(),
+				Username:    entity.Username,
+				Name:        entity.Name,
+				Surname:     entity.Surname,
+				Email:       entity.Email,
+				Password:    entity.Password,
+				Description: entity.Description,
+			})
+
+		if errCall != nil || !res.IsCreated {
+			return nil, errors.New("Internal server error")
 		}
 
 		// Generate tokens
@@ -75,7 +90,6 @@ func (s *AuthService) Registrations(ctx context.Context, entity *entities.Regist
 
 		// Save refresh token
 		return nil, s.repo.SaveRefreshToken(ctx, entity.UserId, entity.RefreshToken)
-
 	})
 	return errTx
 }

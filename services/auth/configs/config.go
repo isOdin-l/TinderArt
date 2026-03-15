@@ -22,7 +22,8 @@ type DatabaseConfig struct {
 }
 
 type ServerConfig struct {
-	ServerPort string `env:"SERVER_PORT"`
+	HttpServerPort string `env:"SERVER_PORT"`
+	GrpcServerPort string `env:"GRPC_SERVER_PORT"`
 }
 
 type InternalConfig struct {
@@ -39,4 +40,8 @@ func NewConfig() (Config, error) {
 
 func (c *Config) DSNPsql() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", c.DbUserName, c.DbPassword, c.DbHost, c.DbPort, c.DbName)
+}
+
+func (c *ServerConfig) DSNgrpc() string {
+	return fmt.Sprintf("localhost:%s", c.GrpcServerPort)
 }
