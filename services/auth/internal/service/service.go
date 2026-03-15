@@ -21,7 +21,6 @@ var (
 type IRepo interface {
 	GetUserByUsername(ctx context.Context, username string) (*entities.Login, error)
 	SaveRefreshToken(ctx context.Context, userId uuid.UUID, refreshToken string) error
-	GetRefreshToken(ctx context.Context, userId uuid.UUID) (string, error)
 }
 
 type TxManager interface {
@@ -39,21 +38,21 @@ func NewService(cfg *config.InternalConfig, repo IRepo, txm TxManager) *AuthServ
 }
 
 func (s *AuthService) Registrations(ctx context.Context, entity *entities.Registration) error {
-	// Check username uniqueness
 	_, errTx := s.txm.WithTx(ctx, func(ctx context.Context) (any, error) {
+		// Check username uniqueness
 		_, err := s.repo.GetUserByUsername(ctx, entity.Username)
 		if err != nil {
-			if !errors.Is(err, pgx.ErrNoRows){
+			if !errors.Is(err, pgx.ErrNoRows) {
 				return nil, err
 			}
 		}
-	
+
 		// Hash password
 		entity.Password, err = s.genPasswordHash(entity.Password)
 		if err != nil {
 			return nil, err
 		}
-	
+
 		// Generate user ID
 		entity.UserId, err = uuid.NewV7()
 		if err != nil {
@@ -63,7 +62,7 @@ func (s *AuthService) Registrations(ctx context.Context, entity *entities.Regist
 		if err := s.gRPCCreateUser(ctx, entity); err != nil {
 			return nil, err
 		}
-	
+
 		// Generate tokens
 		entity.AccessToken, err = s.signAccessToken(entity.UserId)
 		if err != nil {
@@ -73,7 +72,7 @@ func (s *AuthService) Registrations(ctx context.Context, entity *entities.Regist
 		if err != nil {
 			return nil, err
 		}
-	
+
 		// Save refresh token
 		return nil, s.repo.SaveRefreshToken(ctx, entity.UserId, entity.RefreshToken)
 
@@ -123,7 +122,7 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, entity *entities.R
 
 	// Generate new access token
 	entity.AccessToken, err = s.signAccessToken(claims.UserId)
-	
+
 	return err
 }
 func (s *AuthService) ValidateAccessToken(ctx context.Context, entity *entities.ValidateToken) error {

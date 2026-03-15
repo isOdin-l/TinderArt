@@ -44,14 +44,3 @@ func (r *AuthRepository) SaveRefreshToken(ctx context.Context, userId uuid.UUID,
 		},
 	)
 }
-
-func (r *AuthRepository) GetRefreshToken(ctx context.Context, userId uuid.UUID) (string, error) {
-	token, err := r.q.GetRefreshToken(ctx, ToPgUUID(&userId))
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return "", ErrNotFound
-		}
-		return "", err
-	}
-	return token, nil
-}

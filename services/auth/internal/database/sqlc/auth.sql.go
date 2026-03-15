@@ -11,17 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getRefreshToken = `-- name: GetRefreshToken :one
-SELECT refresh_token FROM jwt_tokens WHERE id = $1
-`
-
-func (q *Queries) GetRefreshToken(ctx context.Context, id pgtype.UUID) (string, error) {
-	row := q.db.QueryRow(ctx, getRefreshToken, id)
-	var refresh_token string
-	err := row.Scan(&refresh_token)
-	return refresh_token, err
-}
-
 const getUserByUsername = `-- name: GetUserByUsername :one
 SELECT id, password FROM profiles WHERE username = $1
 `
