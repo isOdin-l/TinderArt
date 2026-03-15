@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package grpc;
 
-option go_package = "./grpc-gen";
+option go_package = ".";
 
 service AuthService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);

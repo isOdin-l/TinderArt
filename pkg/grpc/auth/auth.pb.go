@@ -4,14 +4,15 @@
 // 	protoc        v6.30.2
 // source: auth.proto
 
-package grpc_gen
+package auth
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -176,8 +177,7 @@ const file_auth_proto_rawDesc = "" +
 	"is_created\x18\x01 \x01(\bR\tisCreated2N\n" +
 	"\vAuthService\x12?\n" +
 	"\n" +
-	"CreateUser\x12\x17.grpc.CreateUserRequest\x1a\x18.grpc.CreateUserResponseB\fZ\n" +
-	"./grpc-genb\x06proto3"
+	"CreateUser\x12\x17.grpc.CreateUserRequest\x1a\x18.grpc.CreateUserResponseB\x03Z\x01.b\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once

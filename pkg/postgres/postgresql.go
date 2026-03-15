@@ -3,10 +3,14 @@ package postgresql
 import (
 	"context"
 
-	config "github.com/isOdin-l/TinderArt/services/auth/configs"
+	"github.com/isOdin-l/TinderArt/pkg/configs"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var (
+	TxContext = "txPOSTGIS"
 )
 
 type IExecutor interface {
@@ -19,8 +23,8 @@ type PostgresDB struct {
 	conn *pgxpool.Pool
 }
 
-func NewPostgresDB(cfg *config.Config) (*PostgresDB, error) {
-	conn, err := pgxpool.New(context.Background(), cfg.DSNPsql())
+func NewPostgresDB(cfg *configs.ConfigPostgreWithPostGIS) (*PostgresDB, error) {
+	conn, err := pgxpool.New(context.Background(), cfg.DSN())
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +57,7 @@ func (ps *PostgresDB) Close() {
 }
 
 func (ps *PostgresDB) getExecutor(ctx context.Context) IExecutor {
-	tx, ok := ctx.Value("tx").(pgx.Tx)
+	tx, ok := ctx.Value(TxContext).(pgx.Tx)
 	if !ok {
 		return ps.conn
 	}
@@ -61,7 +65,7 @@ func (ps *PostgresDB) getExecutor(ctx context.Context) IExecutor {
 }
 
 func (ps *PostgresDB) WithTx(ctx context.Context, fn func(ctx context.Context) (any, error)) (any, error) {
-	if _, ok := ctx.Value("tx").(pgx.Tx); ok {
+	if _, ok := ctx.Value(TxContext).(pgx.Tx); ok {
 		return fn(ctx)
 	}
 
@@ -71,7 +75,7 @@ func (ps *PostgresDB) WithTx(ctx context.Context, fn func(ctx context.Context) (
 	}
 	defer tx.Rollback(ctx)
 
-	ctx = context.WithValue(ctx, "tx", tx)
+	ctx = context.WithValue(ctx, TxContext, tx)
 	res, errFn := fn(ctx)
 	if errFn != nil {
 		return nil, errFn

@@ -7,10 +7,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	grpcClient "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	config "github.com/isOdin-l/TinderArt/services/auth/configs"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/entities"
-	"github.com/isOdin-l/TinderArt/services/auth/internal/server"
-	grpc_gen "github.com/isOdin-l/TinderArt/services/auth/pkg/grpc/grpc-gen"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -31,12 +30,12 @@ type TxManager interface {
 
 type AuthService struct {
 	cfg        *config.InternalConfig
-	grpcCleint *server.GrpcClient
+	grpcCleint *grpcClient.GrpcClient
 	repo       IRepo
 	txm        TxManager
 }
 
-func NewService(cfg *config.InternalConfig, repo IRepo, txm TxManager, grpcClient *server.GrpcClient) *AuthService {
+func NewService(cfg *config.InternalConfig, repo IRepo, txm TxManager, grpcClient *grpcClient.GrpcClient) *AuthService {
 	return &AuthService{cfg: cfg, repo: repo, txm: txm, grpcCleint: grpcClient}
 }
 
@@ -64,7 +63,7 @@ func (s *AuthService) Registrations(ctx context.Context, entity *entities.Regist
 
 		// Call Profile service via gRPC to create user profile
 		res, errCall := s.grpcCleint.Client.CreateUser(ctx,
-			&grpc_gen.CreateUserRequest{
+			&grpcClient.CreateUserRequest{
 				UserId:      userDb.UserId.String(),
 				Username:    entity.Username,
 				Name:        entity.Name,
@@ -207,9 +206,4 @@ func (s *AuthService) validate(accessToken string) (bool, error) {
 func (s *AuthService) genPasswordHash(password string) (string, error) {
 	hash, errHash := bcrypt.GenerateFromPassword([]byte(password), s.cfg.HashMinCost)
 	return string(hash), errHash
-}
-
-// gRPC Call
-func (s *AuthService) gRPCCreateUser(ctx context.Context, reg *entities.Registration) error {
-	return nil
 }

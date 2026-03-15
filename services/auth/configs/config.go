@@ -1,29 +1,21 @@
 package config
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/isOdin-l/TinderArt/pkg/configs"
 )
 
 type Config struct {
-	DatabaseConfig
+	configs.ConfigPostgreWithPostGIS
+	configs.ConfigGrpcAuth
 	ServerConfig
 	InternalConfig
 }
 
-type DatabaseConfig struct {
-	DbPassword string `env:"DB_PASSWORD"`
-	DbUserName string `env:"DB_USERNAME"`
-	DbHost     string `env:"DB_HOST"`
-	DbPort     string `env:"DB_PORT"`
-	DbName     string `env:"DB_NAME"`
-}
-
 type ServerConfig struct {
 	HttpServerPort string `env:"SERVER_PORT"`
-	GrpcServerPort string `env:"GRPC_SERVER_PORT"`
 }
 
 type InternalConfig struct {
@@ -36,12 +28,4 @@ type InternalConfig struct {
 
 func NewConfig() (Config, error) {
 	return env.ParseAs[Config]()
-}
-
-func (c *Config) DSNPsql() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", c.DbUserName, c.DbPassword, c.DbHost, c.DbPort, c.DbName)
-}
-
-func (c *ServerConfig) DSNgrpc() string {
-	return fmt.Sprintf("localhost:%s", c.GrpcServerPort)
 }
