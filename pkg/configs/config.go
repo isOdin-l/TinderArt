@@ -22,3 +22,13 @@ type ConfigGrpcAuth struct {
 func (c *ConfigGrpcAuth) DSN() string {
 	return fmt.Sprintf("%s:%s", c.GrpcServerHost, c.GrpcServerPort)
 }
+
+type ConfigRedis struct {
+	RedisHost     string `env:"REDIS_HOST"`
+	RedisPort     string `env:"REDIS_PORT"`
+	RedisPassword string `env:"REDIS_PASSWORD"`
+}
+
+func (c *ConfigRedis) DSN() string {
+	return fmt.Sprintf("%s:%s", c.RedisHost, c.RedisPort)
+}
