@@ -23,7 +23,7 @@ type PostgresDB struct {
 	conn *pgxpool.Pool
 }
 
-func NewPostgresDB(cfg *configs.ConfigPostgreWithPostGIS) (*PostgresDB, error) {
+func NewPostgresDB(cfg *configs.ConfigPostgres) (*PostgresDB, error) {
 	conn, err := pgxpool.New(context.Background(), cfg.DSN())
 	if err != nil {
 		return nil, err

@@ -7,4 +7,5 @@ use (
 	./pkg/redis
 	./services/auth
 	./services/stack
+	./services/swipe
 )

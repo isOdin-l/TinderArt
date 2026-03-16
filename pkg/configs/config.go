@@ -2,7 +2,7 @@ package configs
 
 import "fmt"
 
-type ConfigPostgreWithPostGIS struct {
+type ConfigPostgres struct {
 	DbPassword string `env:"DB_PASSWORD"`
 	DbUserName string `env:"DB_USERNAME"`
 	DbHost     string `env:"DB_HOST"`
@@ -10,7 +10,7 @@ type ConfigPostgreWithPostGIS struct {
 	DbName     string `env:"DB_NAME"`
 }
 
-func (c *ConfigPostgreWithPostGIS) DSN() string {
+func (c *ConfigPostgres) DSN() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", c.DbUserName, c.DbPassword, c.DbHost, c.DbPort, c.DbName)
 }
 
@@ -31,4 +31,11 @@ type ConfigRedis struct {
 
 func (c *ConfigRedis) DSN() string {
 	return fmt.Sprintf("%s:%s", c.RedisHost, c.RedisPort)
+}
+
+type ConfigKafka struct {
+}
+
+func (c *ConfigKafka) DSN() string {
+	return fmt.Sprintf("")
 }

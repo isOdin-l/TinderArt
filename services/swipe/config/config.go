@@ -6,8 +6,8 @@ import (
 )
 
 type Config struct {
-	configs.ConfigRedis
 	configs.ConfigPostgres
+	configs.ConfigKafka
 }
 
 func NewConfig() (Config, error) {
