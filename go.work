@@ -4,5 +4,7 @@ use (
 	./pkg/configs
 	./pkg/grpc
 	./pkg/postgres
+	./pkg/redis
 	./services/auth
+	./services/stack
 )

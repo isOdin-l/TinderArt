@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	grpcClient "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
-	"github.com/isOdin-l/TinderArt/pkg/postgresql"
+	"github.com/isOdin-l/TinderArt/pkg/postgres"
 	config "github.com/isOdin-l/TinderArt/services/auth/configs"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/handler"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/repository"
@@ -28,13 +28,14 @@ func main() {
 	}
 
 	// Database
-	DB, errDb := postgresql.NewPostgresDB(&cfg.ConfigPostgreWithPostGIS)
+	DB, errDb := postgres.NewPostgresDB(&cfg.ConfigPostgreWithPostGIS)
 	if errDb != nil {
 		router.Logger.Error(fmt.Sprintf("failed to initialize db: %s", errDb.Error()))
 		return
 	}
 	defer DB.Close()
 
+	// grpc Client
 	grpcClient, errGrpc := grpcClient.NewGrpcClient(&cfg.ConfigGrpcAuth)
 	if errGrpc != nil {
 		router.Logger.Error(fmt.Sprintf("failed to connect to grpc server: %s", errGrpc.Error()))
