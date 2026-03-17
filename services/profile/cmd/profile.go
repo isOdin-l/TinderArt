@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	"github.com/isOdin-l/TinderArt/pkg/postgres"
 	"github.com/isOdin-l/TinderArt/pkg/s3"
 	"github.com/isOdin-l/TinderArt/services/profile/config"
@@ -20,7 +21,7 @@ import (
 func main() {
 	router := echo.New()
 
-	// Конфиг
+	// Config
 	cfg, errCfg := config.NewConfig()
 	if errCfg != nil {
 		router.Logger.Error(fmt.Sprintf("Error while initilizing config: %s", errCfg.Error()))
@@ -38,11 +39,20 @@ func main() {
 	// S3 storage
 	storage := s3.NewRustFS(&cfg.ConfigRustFS)
 
-	repository := repository.NewRepository(DB)
-	service := service.NewService(repository, storage)
-	handler := handler.NewHandler(service)
+	// Grpc Client
+	grpc_client, errClient := grpc_auth.NewGrpcAuthClient(&cfg.ConfigGrpcClient)
+	if errClient != nil {
+		router.Logger.Error(fmt.Sprintf("Error while initilizing connection with grpc server: %s", errClient.Error()))
+		return
+	}
+	defer grpc_client.Conn.Close()
 
-	server.NewRoutes(router, handler)
+	// Layers
+	repository := repository.NewRepository(DB)                                           // Repository
+	service := service.NewService(repository, storage, grpc_client, &cfg.InternalConfig) // Service
+	handler := handler.NewHandler(service)                                               // Handler
+
+	server.NewRoutes(router, handler) // Routing
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

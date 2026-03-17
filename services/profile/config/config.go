@@ -9,11 +9,16 @@ type Config struct {
 	configs.ConfigRustFS
 	configs.ConfigPostgres
 	configs.ConfigGrpcClient
+	InternalConfig
 	ServerConfig
 }
 
 type ServerConfig struct {
 	HttpServerPort string `env:"HTTP_SERVER_PORT"`
+}
+
+type InternalConfig struct {
+	HashMinCost int `env:"HASH_MIN_COST"`
 }
 
 func NewConfig() (Config, error) {

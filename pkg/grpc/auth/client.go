@@ -7,11 +7,11 @@ import (
 
 // Creation of gRPC client to connect with Auth service
 type GrpcClient struct {
-	Conn   *grpc.ClientConn
-	Client AuthServiceClient
+	Conn *grpc.ClientConn
+	AuthServiceClient
 }
 
-func NewGrpcAClient(cfg *configs.ConfigGrpcClient) (*GrpcClient, error) {
+func NewGrpcAuthClient(cfg *configs.ConfigGrpcClient) (*GrpcClient, error) {
 	grpcConn, errGrpc := grpc.NewClient(cfg.DSN())
 	if errGrpc != nil {
 		return nil, errGrpc
@@ -19,7 +19,7 @@ func NewGrpcAClient(cfg *configs.ConfigGrpcClient) (*GrpcClient, error) {
 	grpClient := NewAuthServiceClient(grpcConn)
 
 	return &GrpcClient{
-		Conn:   grpcConn,
-		Client: grpClient,
+		Conn:              grpcConn,
+		AuthServiceClient: grpClient,
 	}, nil
 }
