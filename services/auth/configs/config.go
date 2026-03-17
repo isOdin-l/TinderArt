@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	configs.ConfigPostgreWithPostGIS
+	configs.ConfigPostgres
 	configs.ConfigGrpcAuth
 	ServerConfig
 	InternalConfig

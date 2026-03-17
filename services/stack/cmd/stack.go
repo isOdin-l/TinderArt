@@ -28,7 +28,7 @@ func main() {
 	defer redis.Client.Close()
 
 	// Postgresql connection
-	DB, errDb := postgres.NewPostgresDB(&cfg.ConfigPostgreWithPostGIS)
+	DB, errDb := postgres.NewPostgresDB(&cfg.ConfigPostgres)
 	if errDb != nil {
 		slog.Error(fmt.Sprintf("Error while initilizing database: %s", errDb.Error()))
 		return

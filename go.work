@@ -3,8 +3,10 @@ go 1.26.0
 use (
 	./pkg/configs
 	./pkg/grpc
+	./pkg/kafka
 	./pkg/postgres
 	./pkg/redis
 	./services/auth
 	./services/stack
+	./services/swipe
 )
