@@ -158,8 +158,3 @@ func (s *AuthService) parseAccessToken(accessToken string) (*jwt.Token, error) {
 			return []byte(s.cfg.AccessSignKey), nil
 		})
 }
-
-func (s *AuthService) genPasswordHash(password string) (string, error) {
-	hash, errHash := bcrypt.GenerateFromPassword([]byte(password), s.cfg.HashMinCost)
-	return string(hash), errHash
-}

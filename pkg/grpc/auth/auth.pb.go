@@ -4,7 +4,7 @@
 // 	protoc        v6.30.2
 // source: auth.proto
 
-package __
+package auth
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -223,7 +223,7 @@ const file_auth_proto_rawDesc = "" +
 	"\vAuthService\x12?\n" +
 	"\n" +
 	"CreateUser\x12\x17.grpc.CreateUserRequest\x1a\x18.grpc.CreateUserResponse\x129\n" +
-	"\bValidate\x12\x15.grpc.ValidateRequest\x1a\x16.grpc.ValidateResponseB\x03Z\x01.b\x06proto3"
+	"\bValidate\x12\x15.grpc.ValidateRequest\x1a\x16.grpc.ValidateResponseB\tZ\a../authb\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once

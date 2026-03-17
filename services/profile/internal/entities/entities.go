@@ -3,15 +3,17 @@ package entities
 import "github.com/google/uuid"
 
 type Profile struct {
-	UserId      uuid.UUID
-	Username    string
-	Name        string
-	Surname     string
-	Email       string
-	Password    string
-	Description string
-	Latitude    float64
-	Longitude   float64
+	UserId       uuid.UUID
+	Username     string
+	Name         string
+	Surname      string
+	Email        string
+	Password     string
+	Description  string
+	Latitude     float64
+	Longitude    float64
+	AccessToken  string
+	RefreshToken string
 }
 
 type UpdateProfile struct {

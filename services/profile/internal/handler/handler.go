@@ -12,6 +12,7 @@ import (
 )
 
 type IService interface {
+	CreateProfile(ctx context.Context, profile *entities.Profile) error
 	GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
 	UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error)
 	DeleteProfile(ctx context.Context, userId uuid.UUID) error
@@ -23,6 +24,22 @@ type Handler struct {
 
 func NewHandler(service IService) *Handler {
 	return &Handler{service: service}
+}
+
+func (h *Handler) CreateProfile(c *echo.Context) error {
+	var req api.RequestCreateaProfile
+	if errBind := c.Bind(&req); errBind != nil {
+		return c.JSON(http.StatusBadRequest, "invalid data")
+	}
+
+	entity := mapper.FromAPICreateProfileToEntity(&req)
+
+	errService := h.service.CreateProfile(c.Request().Context(), entity)
+	if errService != nil {
+		return c.JSON(http.StatusInternalServerError, "Internal server error")
+	}
+
+	return c.JSON(http.StatusOK, mapper.FromEntityToAPICreateProfile(entity))
 }
 
 func (h *Handler) GetProfile(c *echo.Context) error {
