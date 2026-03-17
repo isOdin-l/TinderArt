@@ -6,6 +6,7 @@ use (
 	./pkg/kafka
 	./pkg/postgres
 	./pkg/redis
+	./pkg/s3
 	./services/auth
 	./services/profile
 	./services/stack
