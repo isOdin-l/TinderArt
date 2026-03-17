@@ -1,17 +1,17 @@
-package auth
+package __
 
 import (
 	"github.com/isOdin-l/TinderArt/pkg/configs"
 	grpc "google.golang.org/grpc"
 )
 
-// Creation of gRPC client to connect with Profile service
+// Creation of gRPC client to connect with Auth service
 type GrpcClient struct {
 	Conn   *grpc.ClientConn
 	Client AuthServiceClient
 }
 
-func NewGrpcClient(cfg *configs.ConfigGrpcAuth) (*GrpcClient, error) {
+func NewGrpcAClient(cfg *configs.ConfigGrpcClient) (*GrpcClient, error) {
 	grpcConn, errGrpc := grpc.NewClient(cfg.DSN())
 	if errGrpc != nil {
 		return nil, errGrpc

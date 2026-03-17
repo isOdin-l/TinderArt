@@ -6,14 +6,12 @@ import (
 	"github.com/labstack/echo/v5/middleware"
 )
 
-type IHandler interface {
-	Registrations(c *echo.Context) error // Creates new access_token and refresh_token
-	SignIn(c *echo.Context) error        // Get new access_token and refresh_token, when both expired
-	RefreshToken(c *echo.Context) error  // Update access_token by refresh_token
-	ValidateToken(c *echo.Context) error // Validate access_token
+type IHandlerRest interface {
+	SignIn(c *echo.Context) error       // Get new access_token and refresh_token, when both expired
+	RefreshToken(c *echo.Context) error // Update access_token by refresh_token
 }
 
-func NewRouter(e *echo.Echo, cfg *config.Config, h IHandler) {
+func NewRouter(e *echo.Echo, cfg *config.Config, h IHandlerRest) {
 	e.Use(middleware.RequestID())
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
@@ -21,7 +19,5 @@ func NewRouter(e *echo.Echo, cfg *config.Config, h IHandler) {
 	auth := e.Group("/auth")
 
 	auth.POST("/sign-in", h.SignIn)
-	auth.POST("/register", h.Registrations)
 	auth.POST("/refresh", h.RefreshToken)
-	auth.POST("/validate", h.ValidateToken)
 }
