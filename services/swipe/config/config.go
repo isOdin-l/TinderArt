@@ -13,6 +13,7 @@ type Config struct {
 	ConfigServer
 	configs.ConfigPostgres
 	configs.ConfigKafka
+	configs.ConfigGrpcClient
 }
 
 func NewConfig() (Config, error) {
