@@ -48,7 +48,7 @@ func (c *ConfigKafka) DSN() string {
 	return fmt.Sprintf("%s:%s", c.KafkaHost, c.KafkaPort)
 }
 
-type ConfigRustFT struct {
+type ConfigRustFS struct {
 	RustFSRegion            string `env:"RUSTFS_REGION"`
 	RustFSAccess_key        string `env:"RUSTFS_ACCESS_KEY_ID"`
 	RustFSSecret_access_key string `env:"RUSTFS_SECRET_ACCESS_KEY"`

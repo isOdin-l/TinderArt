@@ -14,7 +14,7 @@ type RustFS struct {
 	Client *s3.Client
 }
 
-func NewRustFS(cfg *configs.ConfigRustFT) *RustFS {
+func NewRustFS(cfg *configs.ConfigRustFS) *RustFS {
 	s3Config := aws.Config{
 		Region: cfg.RustFSRegion,
 		EndpointResolver: aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {

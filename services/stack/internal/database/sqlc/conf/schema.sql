@@ -5,7 +5,7 @@ CREATE TABLE profiles (
     surname TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    description TEXT ,
+    description TEXT,
     location GEOGRAPHY(POINT, 4326) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

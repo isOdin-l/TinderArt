@@ -6,15 +6,12 @@ import (
 	"github.com/isOdin-l/TinderArt/services/profile/pkg/api"
 )
 
-func FromAPIGetProfileToEntity(req *api.RequestGetProfile) *entities.Profile {
-	return &entities.Profile{
-		UserId: req.UserId,
-	}
+func FromAPIGetProfileToEntity(req *api.RequestGetProfile) uuid.UUID {
+	return req.UserId
 }
 
-func FromAPIUpdateProfileToEntity(req api.RequestUpdateProfile, userId uuid.UUID) *entities.UpdateProfile {
+func FromAPIUpdateProfileToEntity(req *api.RequestUpdateProfile) *entities.UpdateProfile {
 	return &entities.UpdateProfile{
-		UserId:      userId,
 		Username:    req.Username,
 		Name:        req.Name,
 		Surname:     req.Surname,
@@ -26,21 +23,7 @@ func FromAPIUpdateProfileToEntity(req api.RequestUpdateProfile, userId uuid.UUID
 	}
 }
 
-// all entity fields must be not nil
-func FromEntityToAPIUpdateProfile(entity *entities.UpdateProfile) *api.ResponseProfile {
-	return &api.ResponseProfile{
-		Username:    *entity.Username,
-		Name:        *entity.Name,
-		Surname:     *entity.Surname,
-		Email:       *entity.Email,
-		Password:    *entity.Password,
-		Description: *entity.Description,
-		Latitude:    *entity.Latitude,
-		Longitude:   *entity.Longitude,
-	}
-}
-
-func FromEntityToApiGetProfile(entity *entities.Profile) *api.ResponseProfile {
+func FromEntityToAPIGetProfile(entity *entities.Profile) *api.ResponseProfile {
 	return &api.ResponseProfile{
 		Username:    entity.Username,
 		Name:        entity.Name,
