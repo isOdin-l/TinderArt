@@ -1,14 +1,15 @@
-package __
+package grpc
 
 import (
 	"github.com/isOdin-l/TinderArt/pkg/configs"
+	"github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	grpc "google.golang.org/grpc"
 )
 
 // Creation of gRPC client to connect with Auth service
 type GrpcClient struct {
 	Conn *grpc.ClientConn
-	AuthServiceClient
+	auth.AuthServiceClient
 }
 
 func NewGrpcAuthClient(cfg *configs.ConfigGrpcClient) (*GrpcClient, error) {
@@ -16,7 +17,7 @@ func NewGrpcAuthClient(cfg *configs.ConfigGrpcClient) (*GrpcClient, error) {
 	if errGrpc != nil {
 		return nil, errGrpc
 	}
-	grpClient := NewAuthServiceClient(grpcConn)
+	grpClient := auth.NewAuthServiceClient(grpcConn)
 
 	return &GrpcClient{
 		Conn:              grpcConn,

@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
+	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc"
 	"github.com/isOdin-l/TinderArt/pkg/postgres"
 	"github.com/isOdin-l/TinderArt/pkg/s3"
 	"github.com/isOdin-l/TinderArt/services/profile/config"

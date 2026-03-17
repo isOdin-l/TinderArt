@@ -17,6 +17,7 @@ require (
 	github.com/isOdin-l/TinderArt/pkg/s3 v0.0.0-00010101000000-000000000000
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/labstack/echo/v5 v5.0.4
+	golang.org/x/crypto v0.49.0
 )
 
 require (

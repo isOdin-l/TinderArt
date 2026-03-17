@@ -4,6 +4,7 @@ use (
 	./pkg/configs
 	./pkg/grpc
 	./pkg/kafka
+	./pkg/middleware
 	./pkg/postgres
 	./pkg/redis
 	./pkg/s3
