@@ -7,10 +7,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	grpcClient "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	config "github.com/isOdin-l/TinderArt/services/auth/configs"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/entities"
-	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -29,68 +27,30 @@ type TxManager interface {
 }
 
 type AuthService struct {
-	cfg        *config.InternalConfig
-	grpcCleint *grpcClient.GrpcClient
-	repo       IRepo
-	txm        TxManager
+	cfg  *config.InternalConfig
+	repo IRepo
+	txm  TxManager
 }
 
-func NewService(cfg *config.InternalConfig, repo IRepo, txm TxManager, grpcClient *grpcClient.GrpcClient) *AuthService {
-	return &AuthService{cfg: cfg, repo: repo, txm: txm, grpcCleint: grpcClient}
+func NewService(cfg *config.InternalConfig, repo IRepo, txm TxManager) *AuthService {
+	return &AuthService{cfg: cfg, repo: repo, txm: txm}
 }
 
 func (s *AuthService) Registrations(ctx context.Context, entity *entities.Registration) error {
-	_, errTx := s.txm.WithTx(ctx, func(ctx context.Context) (any, error) {
-		// Check username uniqueness
-		userDb, err := s.repo.GetUserByUsername(ctx, entity.Username)
-		if err != nil {
-			if !errors.Is(err, pgx.ErrNoRows) {
-				return nil, err
-			}
-		}
+	var errSign error
 
-		// Hash password
-		entity.Password, err = s.genPasswordHash(entity.Password)
-		if err != nil {
-			return nil, err
-		}
+	// Generate tokens
+	entity.AccessToken, errSign = s.signAccessToken(entity.UserId)
+	if errSign != nil {
+		return errSign
+	}
+	entity.RefreshToken, errSign = s.signRefreshToken(entity.UserId)
+	if errSign != nil {
+		return errSign
+	}
 
-		// Generate user ID
-		entity.UserId, err = uuid.NewV7()
-		if err != nil {
-			return nil, err
-		}
-
-		// Call Profile service via gRPC to create user profile
-		res, errCall := s.grpcCleint.Client.CreateUser(ctx,
-			&grpcClient.CreateUserRequest{
-				UserId:      userDb.UserId.String(),
-				Username:    entity.Username,
-				Name:        entity.Name,
-				Surname:     entity.Surname,
-				Email:       entity.Email,
-				Password:    entity.Password,
-				Description: entity.Description,
-			})
-
-		if errCall != nil || !res.IsCreated {
-			return nil, errors.New("Internal server error")
-		}
-
-		// Generate tokens
-		entity.AccessToken, err = s.signAccessToken(entity.UserId)
-		if err != nil {
-			return nil, err
-		}
-		entity.RefreshToken, err = s.signRefreshToken(entity.UserId)
-		if err != nil {
-			return nil, err
-		}
-
-		// Save refresh token
-		return nil, s.repo.SaveRefreshToken(ctx, entity.UserId, entity.RefreshToken)
-	})
-	return errTx
+	// Save refresh token
+	return s.repo.SaveRefreshToken(ctx, entity.UserId, entity.RefreshToken)
 }
 
 func (s *AuthService) Login(ctx context.Context, entity *entities.Login) error {
@@ -138,17 +98,18 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, entity *entities.R
 
 	return err
 }
-func (s *AuthService) ValidateAccessToken(ctx context.Context, entity *entities.ValidateToken) error {
-	valRes, errVal := s.validate(entity.AccessToken)
+func (s *AuthService) ValidateAccessToken(ctx context.Context, entity *entities.ValidateToken) (uuid.UUID, error) {
+	token, errVal := s.parseAccessToken(entity.AccessToken)
 	if errVal != nil {
-		return errVal
+		return uuid.Nil, errVal
 	}
 
-	if valRes {
-		return nil
+	claims, ok := token.Claims.(*entities.JwtTokenClaims)
+	if !ok || !token.Valid {
+		return uuid.Nil, errors.New("Unauthorized")
 	}
 
-	return errors.New("Unauthorized") // Create custom errors
+	return claims.UserId, nil
 }
 
 // Internal methods
@@ -196,14 +157,4 @@ func (s *AuthService) parseAccessToken(accessToken string) (*jwt.Token, error) {
 
 			return []byte(s.cfg.AccessSignKey), nil
 		})
-}
-
-func (s *AuthService) validate(accessToken string) (bool, error) {
-	token, errParse := s.parseAccessToken(accessToken)
-	return token.Valid, errParse
-}
-
-func (s *AuthService) genPasswordHash(password string) (string, error) {
-	hash, errHash := bcrypt.GenerateFromPassword([]byte(password), s.cfg.HashMinCost)
-	return string(hash), errHash
 }

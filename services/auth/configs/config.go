@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	configs.ConfigPostgres
-	configs.ConfigGrpcAuth
+	configs.ConfigGrpcServer
 	ServerConfig
 	InternalConfig
 }
@@ -19,7 +19,6 @@ type ServerConfig struct {
 }
 
 type InternalConfig struct {
-	HashMinCost     int           `env:"HASH_MIN_COST"`
 	AccessSignKey   string        `env:"ACCESS_SIGNING_KEY"`
 	RefreshSignKey  string        `env:"REFRESH_SIGNING_KEY"`
 	AccessTokenTTL  time.Duration `env:"ACCESS_TOKEN_TTL"`

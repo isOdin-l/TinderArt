@@ -1,6 +1,8 @@
 package entities
 
 import (
+	"github.com/google/uuid"
+	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/entities"
 	"github.com/isOdin-l/TinderArt/services/auth/pkg/api"
 )
@@ -10,7 +12,7 @@ import (
 // From<EntityName>ToAPI<ResponseModel> (req *<EntityName>) *api.<ResponseModel>
 
 // --------- Request ---------
-func FromAPIValidateTokenToValidateToken(req *api.ValidateToken) *entities.ValidateToken {
+func FromAPIValidateTokenToValidateToken(req *grpc_auth.ValidateRequest) *entities.ValidateToken {
 	return &entities.ValidateToken{
 		AccessToken: req.AccessToken,
 	}
@@ -23,16 +25,9 @@ func FromAPILoginToLogin(req *api.Login) *entities.Login {
 	}
 }
 
-func FromAPIRegistrationToRegistration(req *api.Registration) *entities.Registration {
+func FromAPIRegistrationToRegistration(req *grpc_auth.CreateUserRequest) *entities.Registration {
 	return &entities.Registration{
-		Username:    req.Username,
-		Name:        req.Name,
-		Surname:     req.Surname,
-		Email:       req.Email,
-		Password:    req.Password,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
+		UserId: uuid.MustParse(req.GetUserId()),
 	}
 }
 
@@ -57,10 +52,10 @@ func FromAuthResultToTokenResponse(result *entities.AuthResult) *api.TokenRespon
 	}
 }
 
-func FromRegistrationToTokenResponse(reg *entities.Registration) *api.TokenResponse {
-	return &api.TokenResponse{
-		AccessToken:  reg.AccessToken,
-		RefreshToken: reg.RefreshToken,
+func FromRegistrationToTokenResponse(req *entities.Registration) *grpc_auth.CreateUserResponse {
+	return &grpc_auth.CreateUserResponse{
+		AccessToken:  req.AccessToken,
+		RefreshToken: req.RefreshToken,
 	}
 }
 

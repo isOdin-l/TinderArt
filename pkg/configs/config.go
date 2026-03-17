@@ -16,13 +16,21 @@ func (c *ConfigPostgres) DSN() string {
 }
 
 // GRPC
-type ConfigGrpcAuth struct {
+type ConfigGrpcClient struct {
 	GrpcServerPort string `env:"GRPC_SERVER_PORT"`
 	GrpcServerHost string `env:"GRPC_SERVER_HOST"`
 }
 
-func (c *ConfigGrpcAuth) DSN() string {
+func (c *ConfigGrpcClient) DSN() string {
 	return fmt.Sprintf("%s:%s", c.GrpcServerHost, c.GrpcServerPort)
+}
+
+type ConfigGrpcServer struct {
+	GrpcServerPort string `env:"GRPC_SERVER_PORT"`
+}
+
+func (c *ConfigGrpcServer) DSN() string {
+	return fmt.Sprintf(":%s", c.GrpcServerPort)
 }
 
 // REDIS
@@ -46,4 +54,12 @@ type ConfigKafka struct {
 
 func (c *ConfigKafka) DSN() string {
 	return fmt.Sprintf("%s:%s", c.KafkaHost, c.KafkaPort)
+}
+
+// RUSTFS
+type ConfigRustFS struct {
+	RustFSRegion            string `env:"RUSTFS_REGION"`
+	RustFSAccess_key        string `env:"RUSTFS_ACCESS_KEY_ID"`
+	RustFSSecret_access_key string `env:"RUSTFS_SECRET_ACCESS_KEY"`
+	RustFSEndpoint          string `env:"RUSTFS_ENDPOINT_URL"`
 }

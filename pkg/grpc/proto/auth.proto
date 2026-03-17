@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "../auth";
+
+service AuthService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc Validate(ValidateRequest) returns (ValidateResponse);
+}
+
+message CreateUserRequest {
+  string user_id = 1; // UUID
+}
+
+message CreateUserResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message ValidateRequest {
+  string access_token = 1;
+}
+
+message ValidateResponse {
+  string user_id = 1;
+}
