@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc"
+	"github.com/isOdin-l/TinderArt/pkg/middleware"
 	"github.com/isOdin-l/TinderArt/pkg/postgres"
 	"github.com/isOdin-l/TinderArt/pkg/s3"
 	"github.com/isOdin-l/TinderArt/services/profile/config"
@@ -52,7 +53,10 @@ func main() {
 	service := service.NewService(repository, storage, grpc_client, &cfg.InternalConfig) // Service
 	handler := handler.NewHandler(service)                                               // Handler
 
-	server.NewRoutes(router, handler) // Routing
+	// Custom middleware with grpc call
+	md := middleware.NewMiddleware(grpc_client)
+
+	server.NewRoutes(router, handler, md) // Routing
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
