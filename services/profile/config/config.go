@@ -8,7 +8,7 @@ import (
 type Config struct {
 	configs.ConfigRustFS
 	configs.ConfigPostgres
-	configs.ConfigGrpcAuth
+	configs.ConfigGrpcClient
 	ServerConfig
 }
 

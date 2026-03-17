@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	configs.ConfigPostgres
-	configs.ConfigGrpcAuth
+	configs.ConfigGrpcServer
 	ServerConfig
 	InternalConfig
 }

@@ -1,13 +1,8 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 
-	grpcClient "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	"github.com/isOdin-l/TinderArt/pkg/postgres"
 	config "github.com/isOdin-l/TinderArt/services/auth/configs"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/handler"
@@ -35,24 +30,16 @@ func main() {
 	}
 	defer DB.Close()
 
-	// grpc Client
-	grpcClient, errGrpc := grpcClient.NewGrpcClient(&cfg.ConfigGrpcAuth)
-	if errGrpc != nil {
-		router.Logger.Error(fmt.Sprintf("failed to connect to grpc server: %s", errGrpc.Error()))
+	repository := repository.NewRepository(DB)                         //  Repository
+	service := service.NewService(&cfg.InternalConfig, repository, DB) //  Service
+	handler := handler.NewHandler(service)                             //  Handler
+
+	server.NewRouter(router, &cfg, handler)                                                              //  Routing
+	serverRunner, errServ := server.NewServer(&cfg.ServerConfig, &cfg.ConfigGrpcServer, router, handler) // Server initialization
+	if errServ != nil {
+		router.Logger.Error(fmt.Sprintf("Error whili initilizing server runner: %s", errServ.Error()))
 		return
 	}
-	defer grpcClient.Conn.Close()
 
-	repository := repository.NewRepository(DB)                                     //  Repository
-	service := service.NewService(&cfg.InternalConfig, repository, DB, grpcClient) //  Service
-	handler := handler.NewHandler(service)                                         //  Handler
-
-	// Definition context for server's graceful shutdown
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
-
-	server.NewRouter(router, &cfg, handler) //  Routing
-	if err := server.RunServer(router, &ctx, &cfg.ServerConfig); err != nil {
-		router.Logger.Error(fmt.Sprintf("Error while running server %s", err.Error()))
-	}
+	serverRunner.RunServer()
 }

@@ -6,20 +6,22 @@ option go_package = ".";
 
 service AuthService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc Validate(ValidateRequest) returns (ValidateResponse);
 }
 
 message CreateUserRequest {
   string user_id = 1; // UUID
-  string username = 2;
-  string name = 3;
-  string surname = 4;
-  string email = 5;
-  string password = 6;
-  string description = 7;
-  // float64 Latitude = 8;
-  // float64 Longitude = 9;
 }
 
 message CreateUserResponse {
-  bool is_created = 1;
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message ValidateRequest {
+  string access_token = 1;
+}
+
+message ValidateResponse {
+  string user_id = 1;
 }
