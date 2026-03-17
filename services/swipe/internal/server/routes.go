@@ -9,12 +9,10 @@ type IHandler interface {
 	CreateSwipe(c *echo.Context) error
 }
 
-func CreateRoutes(router *echo.Echo, h IHandler) *echo.Echo {
+func CreateRoutes(router *echo.Echo, h IHandler) {
 	router.Use(middleware.RequestID())
 	router.Use(middleware.RequestLogger())
 	router.Use(middleware.Recover())
 
 	router.POST("/swipe", h.CreateSwipe)
-
-	return router
 }

@@ -5,7 +5,12 @@ import (
 	"github.com/isOdin-l/TinderArt/pkg/configs"
 )
 
+type ConfigServer struct {
+	HttpServerPort string `env:"HTTP_SERVER_PORT"`
+}
+
 type Config struct {
+	ConfigServer
 	configs.ConfigPostgres
 	configs.ConfigKafka
 }
