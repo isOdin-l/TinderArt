@@ -7,6 +7,7 @@ use (
 	./pkg/postgres
 	./pkg/redis
 	./services/auth
+	./services/profile
 	./services/stack
 	./services/swipe
 )
