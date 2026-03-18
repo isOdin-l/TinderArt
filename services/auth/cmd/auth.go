@@ -22,7 +22,7 @@ func main() {
 		return
 	}
 
-	// Database
+	// Datastorage
 	DB, errDb := postgres.NewPostgresDB(&cfg.ConfigPostgres)
 	if errDb != nil {
 		router.Logger.Error(fmt.Sprintf("failed to initialize db: %s", errDb.Error()))

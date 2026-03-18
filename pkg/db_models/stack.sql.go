@@ -3,7 +3,7 @@
 //   sqlc v1.29.0
 // source: stack.sql
 
-package sqlc
+package db_models
 
 import (
 	"context"
@@ -12,12 +12,13 @@ import (
 )
 
 const findMatches = `-- name: FindMatches :many
-SELECT p.id FROM profiles p
-JOIN profiles me ON me.id = $1
+SELECT DISTINCT f2.profile_id
+FROM fav_art_styles f1
+JOIN fav_art_styles f2 ON f1.style_id = f2.style_id
+JOIN profiles p2 ON p2.id = f2.profile_id
+JOIN profiles p1 ON p1.id = $1
 JOIN preferences pref ON pref.profile_id = $1
-WHERE p.id != $1
-AND p.age BETWEEN pref.min_age AND pref.max_age
-AND ST_DWithin(me.location, p.location, pref.max_distance_meters)
+WHERE f1.profile_id = $1 AND f2.profile_id != $1 AND ST_DWithin(p1.location, p2.location, pref.max_distance)
 `
 
 func (q *Queries) FindMatches(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error) {
@@ -28,11 +29,11 @@ func (q *Queries) FindMatches(ctx context.Context, id pgtype.UUID) ([]pgtype.UUI
 	defer rows.Close()
 	items := []pgtype.UUID{}
 	for rows.Next() {
-		var id pgtype.UUID
-		if err := rows.Scan(&id); err != nil {
+		var profile_id pgtype.UUID
+		if err := rows.Scan(&profile_id); err != nil {
 			return nil, err
 		}
-		items = append(items, id)
+		items = append(items, profile_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -3,7 +3,7 @@
 //   sqlc v1.29.0
 // source: profile.sql
 
-package sqlc
+package db_models
 
 import (
 	"context"
@@ -11,6 +11,40 @@ import (
 	"github.com/cridenour/go-postgis"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createPhotos = `-- name: CreatePhotos :exec
+INSERT INTO photos (id, profile_id, url)
+SELECT
+    UNNEST($1::uuid[]),
+    $2,
+    UNNEST($3::text[])
+`
+
+type CreatePhotosParams struct {
+	Ids       []pgtype.UUID
+	ProfileID pgtype.UUID
+	Urls      []string
+}
+
+func (q *Queries) CreatePhotos(ctx context.Context, arg CreatePhotosParams) error {
+	_, err := q.db.Exec(ctx, createPhotos, arg.Ids, arg.ProfileID, arg.Urls)
+	return err
+}
+
+const createPreferences = `-- name: CreatePreferences :exec
+INSERT INTO preferences (profile_id, max_distance_meters)
+VALUES ($1, $2)
+`
+
+type CreatePreferencesParams struct {
+	ProfileID         pgtype.UUID
+	MaxDistanceMeters int32
+}
+
+func (q *Queries) CreatePreferences(ctx context.Context, arg CreatePreferencesParams) error {
+	_, err := q.db.Exec(ctx, createPreferences, arg.ProfileID, arg.MaxDistanceMeters)
+	return err
+}
 
 const createProfile = `-- name: CreateProfile :exec
 INSERT INTO profiles (id, username, name, surname, email, password, description, location)
@@ -42,20 +76,32 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) er
 	return err
 }
 
-const deleteProfile = `-- name: DeleteProfile :exec
+const deletePhotos = `-- name: DeletePhotos :exec
+DELETE FROM photos
+WHERE profile_id = $1 AND id = ANY($2::uuid[])
+`
 
+type DeletePhotosParams struct {
+	ProfileID pgtype.UUID
+	Column2   []pgtype.UUID
+}
+
+func (q *Queries) DeletePhotos(ctx context.Context, arg DeletePhotosParams) error {
+	_, err := q.db.Exec(ctx, deletePhotos, arg.ProfileID, arg.Column2)
+	return err
+}
+
+const deleteProfile = `-- name: DeleteProfile :exec
 DELETE FROM profiles WHERE id = $1
 `
 
-// , location;
 func (q *Queries) DeleteProfile(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteProfile, id)
 	return err
 }
 
 const getProfile = `-- name: GetProfile :one
-SELECT
-    id, username, name, surname, email, description,
+SELECT id, username, name, surname, email, description,
     ST_X(location::GEOGRAPHY) AS longitude,
     ST_Y(location::GEOGRAPHY) AS latitude
 FROM profiles WHERE id = $1
@@ -85,6 +131,24 @@ func (q *Queries) GetProfile(ctx context.Context, id pgtype.UUID) (GetProfileRow
 		&i.Longitude,
 		&i.Latitude,
 	)
+	return i, err
+}
+
+const updatePreferences = `-- name: UpdatePreferences :one
+UPDATE preferences
+SET max_distance_meters = COALESCE($2, max_distance_meters)
+WHERE profile_id = $1 RETURNING profile_id, max_distance_meters
+`
+
+type UpdatePreferencesParams struct {
+	ProfileID         pgtype.UUID
+	MaxDistanceMeters int32
+}
+
+func (q *Queries) UpdatePreferences(ctx context.Context, arg UpdatePreferencesParams) (Preference, error) {
+	row := q.db.QueryRow(ctx, updatePreferences, arg.ProfileID, arg.MaxDistanceMeters)
+	var i Preference
+	err := row.Scan(&i.ProfileID, &i.MaxDistanceMeters)
 	return i, err
 }
 

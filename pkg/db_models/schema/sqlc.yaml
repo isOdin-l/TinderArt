@@ -5,9 +5,12 @@ sql:
     engine: "postgresql"
     gen:
       go:
-        package: "sqlc"
+        package: "db_models"
         out: "../"
         sql_package: "pgx/v5"
         emit_interface: false
         emit_exact_table_names: false
         emit_empty_slices: true
+        overrides:
+          - db_type: "geography"
+            go_type: "github.com/cridenour/go-postgis.Point"

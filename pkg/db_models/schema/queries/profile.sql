@@ -3,8 +3,7 @@ INSERT INTO profiles (id, username, name, surname, email, password, description,
 VALUES($1, $2, $3, $4, $5, $6, $7, $8);
 
 -- name: GetProfile :one
-SELECT
-    id, username, name, surname, email, description,
+SELECT id, username, name, surname, email, description,
     ST_X(location::GEOGRAPHY) AS longitude,
     ST_Y(location::GEOGRAPHY) AS latitude
 FROM profiles WHERE id = $1;
@@ -20,7 +19,28 @@ SET
     description = COALESCE($7, description),
     location = COALESCE(ST_SetSRID(ST_MakePoint(sqlc.arg(longitude), sqlc.arg(latitude)), 4326)::GEOGRAPHY, location)
 WHERE id = $1
-RETURNING id, username, name, surname, email, description;--, location;
+RETURNING id, username, name, surname, email, description;
 
 -- name: DeleteProfile :exec
 DELETE FROM profiles WHERE id = $1;
+
+
+-- name: CreatePreferences :exec
+INSERT INTO preferences (profile_id, max_distance_meters)
+VALUES ($1, $2);
+
+-- name: UpdatePreferences :one
+UPDATE preferences
+SET max_distance_meters = COALESCE($2, max_distance_meters)
+WHERE profile_id = $1 RETURNING profile_id, max_distance_meters;
+
+-- name: CreatePhotos :exec
+INSERT INTO photos (id, profile_id, url)
+SELECT
+    UNNEST(sqlc.arg(ids)::uuid[]),
+    sqlc.arg(profile_id),
+    UNNEST(sqlc.arg(urls)::text[]);
+
+-- name: DeletePhotos :exec
+DELETE FROM photos
+WHERE profile_id = $1 AND id = ANY($2::uuid[]);
