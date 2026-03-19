@@ -1,8 +1,42 @@
 include:
-  - path: ./compose_files/s3.yml 
+  # - path: ./compose_files/s3.yml
   - path: ./compose_files/db_swipes.yml
   - path: ./compose_files/db_profiles.yml
-  # - path: ./compose_files/nginx.yml
-  - path: ./compose_files/cache_db.yml
-
+  # - path: ./compose_files/cache_db.yml
   - path: ./compose_files/msg_broker.yml
+
+  - path: ./compose_files/nginx.yml
+
+services:
+  auth-service:
+    image: auth-service:dev-0.2
+    container_name: auth-service
+    ports:
+      - "8000:8000" # HTTP port - delete after dev
+      - "9000:9000" # gRPC port - delete after dev
+    env_file:
+      - ./configs/services/auth.env
+    networks:
+      - tindart
+    depends_on:
+      db_profiles:
+        condition: service_healthy
+
+  swipe-service:
+    image: swipe-service:dev-0.1
+    container_name: swipe-service
+    ports:
+      - "8001:8001" # HTTP port - delete after dev
+    env_file:
+      - ./configs/services/swipe.env
+    networks:
+      - tindart
+    depends_on:
+      db_swipes:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+networks:
+  tindart:
+    driver: bridge

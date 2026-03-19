@@ -19,6 +19,8 @@ func FromPgUUID(v *pgtype.UUID) uuid.UUID {
 	return uuid.UUID(v.Bytes)
 }
 
+// DB ---> ENTITY
+
 func FromGetProfileRowToEntity(db *db_models.GetProfileRow) *entities.Profile {
 	return &entities.Profile{
 		UserId:      FromPgUUID(&db.ID),
@@ -27,11 +29,9 @@ func FromGetProfileRowToEntity(db *db_models.GetProfileRow) *entities.Profile {
 		Name:        db.Name,
 		Email:       db.Email,
 		Description: db.Description,
+		Latitude:    db.Latitude.(float64),
+		Longitude:   db.Longitude.(float64),
 	}
-}
-
-func FromEntityToUpdateProfileParams(entity *entities.UpdateProfile) *db_models.UpdateProfileParams {
-	return &db_models.UpdateProfileParams{}
 }
 
 func FromUpdateResultsToEntity(req *db_models.UpdateProfileRow) *entities.Profile {
@@ -45,6 +45,15 @@ func FromUpdateResultsToEntity(req *db_models.UpdateProfileRow) *entities.Profil
 	}
 }
 
+func FromPreferenceToEntity(req *db_models.Preference) *entities.Profile {
+	return &entities.Profile{
+		UserId:                   FromPgUUID(&req.ProfileID),
+		PreferencesMaxDistMeters: int(req.MaxDistanceMeters),
+	}
+}
+
+// ENTITY ---> DB
+
 func FromEntityToCreateProfile(entity *entities.Profile) *db_models.CreateProfileParams {
 	return &db_models.CreateProfileParams{
 		ID:          ToPgUUID(&entity.UserId),
@@ -56,4 +65,26 @@ func FromEntityToCreateProfile(entity *entities.Profile) *db_models.CreateProfil
 		Description: entity.Description,
 		Location:    postgis.Point{Y: entity.Latitude, X: entity.Longitude},
 	}
+}
+
+func FromEntityToUpdateProfileParams(entity *entities.UpdateProfile) *db_models.UpdateProfileParams {
+	return &db_models.UpdateProfileParams{}
+}
+
+func FromEntityToCreatePrefParams(entity *entities.Profile) *db_models.CreatePreferencesParams {
+	return &db_models.CreatePreferencesParams{}
+}
+
+func FromEntityToUpdatePref(entity *entities.Profile) *db_models.UpdatePreferencesParams {
+	return &db_models.UpdatePreferencesParams{}
+}
+
+func FromEntityToCreatePhotos(entity *entities.Profile) *db_models.CreatePhotosParams {
+	return &db_models.CreatePhotosParams{
+		ProfileID: ToPgUUID(&entity.UserId),
+		Urls:      entity.PhotoUrls,
+	}
+}
+func FromEntityToDeletePhotos(entity *entities.Profile) *db_models.DeletePhotosParams {
+	return &db_models.DeletePhotosParams{}
 }

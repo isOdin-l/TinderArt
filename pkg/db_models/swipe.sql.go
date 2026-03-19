@@ -41,7 +41,7 @@ func (q *Queries) InsertSwipe(ctx context.Context, arg InsertSwipeParams) (pgtyp
 
 const updateSwipe = `-- name: UpdateSwipe :one
 UPDATE swipes
-SET desicion_2 = COALESCE($3, desicion_2)
+SET desicion_2 = $3
 WHERE user_id_1 = $1 AND user_id_2 = $2
 RETURNING desicion_1, desicion_2
 `

@@ -16,7 +16,7 @@ type QueryBuilder interface {
 	CreateProfile(ctx context.Context, arg db_models.CreateProfileParams) error
 
 	// Get
-	GetProfile(ctx context.Context, id pgtype.UUID) (db_models.GetProfileRow, error)
+	GetProfile(ctx context.Context, id pgtype.UUID) (db_models.GetProfileRow, error) // TODO: should be with photos urls
 
 	// Update
 	UpdatePreferences(ctx context.Context, arg db_models.UpdatePreferencesParams) (db_models.Preference, error)
@@ -35,6 +35,7 @@ func NewRepository(db db_models.DBTX) *Repository {
 	return &Repository{query: db_models.New(db)}
 }
 
+// Profile
 func (repo *Repository) CreateProfile(ctx context.Context, profile *entities.Profile) error {
 	return repo.query.CreateProfile(ctx, *FromEntityToCreateProfile(profile))
 }
@@ -58,4 +59,24 @@ func (repo *Repository) DeleteProfile(ctx context.Context, userId uuid.UUID) err
 	return repo.query.DeleteProfile(ctx, ToPgUUID(&userId))
 }
 
-// CRUD preferences, CRUD photo
+// Preferences
+func (repo *Repository) CreatePreferences(ctx context.Context, profile *entities.Profile) error {
+	return repo.query.CreatePreferences(ctx, *FromEntityToCreatePrefParams(profile))
+}
+
+func (repo *Repository) UpdatePreferences(ctx context.Context, profile *entities.Profile) (*entities.Profile, error) {
+	db, errDb := repo.query.UpdatePreferences(ctx, *FromEntityToUpdatePref(profile))
+	if errDb != nil {
+		return nil, errDb
+	}
+	return FromPreferenceToEntity(&db), nil
+}
+
+// Photos
+func (repo *Repository) CreatePhotos(ctx context.Context, profile *entities.Profile) error {
+	return repo.query.CreatePhotos(ctx, *FromEntityToCreatePhotos(profile))
+}
+
+func (repo *Repository) DeletePhotos(ctx context.Context, profile *entities.Profile) error {
+	return repo.query.DeletePhotos(ctx, *FromEntityToDeletePhotos(profile))
+}

@@ -15,7 +15,7 @@ func (c *ConfigPostgres) DSN() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", c.DbUserName, c.DbPassword, c.DbHost, c.DbPort, c.DbName)
 }
 
-// GRPC
+// GRPC Client
 type ConfigGrpcClient struct {
 	GrpcServerPort string `env:"GRPC_SERVER_PORT"`
 	GrpcServerHost string `env:"GRPC_SERVER_HOST"`
@@ -25,6 +25,7 @@ func (c *ConfigGrpcClient) DSN() string {
 	return fmt.Sprintf("%s:%s", c.GrpcServerHost, c.GrpcServerPort)
 }
 
+// GRPC Server
 type ConfigGrpcServer struct {
 	GrpcServerPort string `env:"GRPC_SERVER_PORT"`
 }

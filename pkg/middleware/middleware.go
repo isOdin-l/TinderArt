@@ -33,7 +33,7 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 			token := strings.TrimPrefix(authHeader, "Bearer ")
 			if token == authHeader {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid token",
+					"error": "invalid token1",
 				})
 			}
 
@@ -44,7 +44,7 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 
 			if errVal != nil {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid token",
+					"error": errVal.Error(),
 				})
 			}
 
