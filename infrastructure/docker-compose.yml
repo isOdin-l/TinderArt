@@ -23,7 +23,7 @@ services:
         condition: service_healthy
 
   swipe-service:
-    image: swipe-service:dev-0.1
+    image: swipe-service:dev-0.5
     container_name: swipe-service
     ports:
       - "8001:8001" # HTTP port - delete after dev

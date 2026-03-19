@@ -8,26 +8,22 @@ import (
 )
 
 type Kafka struct {
-	Conn *kafka.Conn
+	Conn *kafka.Writer
 }
 
 func NewKafka(cfg *configs.ConfigKafka) (*Kafka, error) {
-	conn, errCn := kafka.DialLeader(context.Background(), "tcp", cfg.DSN(), cfg.KafkaTopic, cfg.KafkaPartition)
-	if errCn != nil {
-		return nil, errCn
+	writer := &kafka.Writer{
+		Addr:     kafka.TCP(cfg.DSN()),
+		Topic:    cfg.KafkaTopic,
+		Balancer: &kafka.LeastBytes{},
 	}
 
-	return &Kafka{Conn: conn}, nil
+	return &Kafka{Conn: writer}, nil
 }
 
 func (k *Kafka) WriteMessage(ctx context.Context, key, value []byte) error {
-	_, err := k.Conn.WriteMessages(
-		kafka.Message{Key: key, Value: value},
-	)
-	return err
-}
-
-func (k *Kafka) ReadMessage(ctx context.Context) (kafka.Message, error) {
-	msg, err := k.Conn.ReadMessage(10e6) // 10MB max size
-	return msg, err
+	return k.Conn.WriteMessages(ctx, kafka.Message{
+		Key:   key,
+		Value: value,
+	})
 }

@@ -6,8 +6,8 @@ type Swipe struct {
 	Id        uuid.UUID
 	UserId    uuid.UUID
 	TargetId  uuid.UUID
-	Decision1 bool
-	Decision2 bool
+	Decision1 *bool
+	Decision2 *bool
 }
 
 type BrokerMatchMessage struct {
