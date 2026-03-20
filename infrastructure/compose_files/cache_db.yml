@@ -9,17 +9,23 @@ services:
 
     ports:
       - "6379:6379"
+    networks:
+      - tindart
 
     volumes:
       - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - ../../data/redis:/data
 
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a $(cat /run/secrets/redis_password) ping | grep PONG"]
+      test:
+        [
+          "CMD-SHELL",
+          "redis-cli -a $(cat /run/secrets/redis_password) ping | grep PONG",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-   
+
     command: >
       sh -c "redis-server /usr/local/etc/redis/redis.conf --requirepass $(cat /run/secrets/redis_password)"
 
