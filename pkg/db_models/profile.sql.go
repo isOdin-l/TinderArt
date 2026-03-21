@@ -120,6 +120,30 @@ func (q *Queries) DeleteProfile(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const getPhotos = `-- name: GetPhotos :many
+SELECT id FROM photos WHERE profile_id = $1
+`
+
+func (q *Queries) GetPhotos(ctx context.Context, profileID pgtype.UUID) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, getPhotos, profileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.UUID{}
+	for rows.Next() {
+		var id pgtype.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProfile = `-- name: GetProfile :one
 SELECT
     p.id, p.username, p.name, p.surname, p.email, p.description,

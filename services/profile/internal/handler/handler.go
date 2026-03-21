@@ -51,7 +51,7 @@ func (h *Handler) GetProfile(c *echo.Context) error {
 
 	profile, errService := h.service.GetProfile(c.Request().Context(), mapper.FromAPIGetProfileToEntity(&req))
 	if errService != nil {
-		return c.JSON(http.StatusInternalServerError, "Internal server error")
+		return c.JSON(http.StatusInternalServerError, errService.Error())
 	}
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPIGetProfile(profile))
 }

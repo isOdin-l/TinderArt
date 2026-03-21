@@ -67,6 +67,10 @@ SELECT
     sqlc.arg(profile_id),
     UNNEST(sqlc.arg(urls)::text[]);
 
+-- name: GetPhotos :many
+SELECT id FROM photos WHERE profile_id = $1;
+
+
 -- name: DeletePhotos :exec
 DELETE FROM photos
 WHERE profile_id = $1 AND id = ANY($2::uuid[]);

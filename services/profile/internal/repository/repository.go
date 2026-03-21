@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/isOdin-l/TinderArt/pkg/db_models"
@@ -25,6 +23,7 @@ type QueryBuilder interface {
 
 	// Photos
 	CreatePhotos(ctx context.Context, arg db_models.CreatePhotosParams) error
+	GetPhotos(ctx context.Context, profileID pgtype.UUID) ([]pgtype.UUID, error)
 	DeletePhotos(ctx context.Context, arg db_models.DeletePhotosParams) error
 
 	// FavArtStyles
@@ -49,7 +48,6 @@ func (repo *Repository) GetProfile(ctx context.Context, userId uuid.UUID) (*enti
 	if errDb != nil {
 		return nil, errDb
 	}
-	slog.Info(fmt.Sprintf("%s %s", row.Photos, row.FavArtStyles))
 	return mappers.FromGetProfileToEntity(&row), nil
 }
 
@@ -86,6 +84,11 @@ func (repo *Repository) CreateFavArtStyle(ctx context.Context, profile *entities
 // PHOTOS
 func (repo *Repository) CreatePhotos(ctx context.Context, profile *entities.Profile) error {
 	return repo.query.CreatePhotos(ctx, *mappers.FromEntityToCreatePhotos(profile))
+}
+
+func (repo *Repository) GetPhotos(ctx context.Context, userId uuid.UUID) (*entities.Profile, error) {
+	photosUrls, errDb := repo.query.GetPhotos(ctx, db_models.ToPgUUID(&userId))
+	return mappers.FromGetPhotosToEntity(&photosUrls), errDb
 }
 
 // func (repo *Repository) DeletePhotos(ctx context.Context, profile *entities.Profile) error {

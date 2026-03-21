@@ -34,6 +34,7 @@ type IRepository interface {
 
 	// Photos
 	CreatePhotos(ctx context.Context, profile *entities.Profile) error
+	GetPhotos(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
 
 	// FavArtStyles
 	CreateFavArtStyle(ctx context.Context, profile *entities.Profile) error
@@ -41,7 +42,7 @@ type IRepository interface {
 
 type IStorage interface {
 	PutObject(ctx context.Context, bucket, key *string, body io.Reader) error
-	GetObject(ctx context.Context, bucket, key *string) ([]byte, error)
+	DeleteObjects(ctx context.Context, bucket *string, keys *[]string) error
 }
 
 type ITxManagaer interface {
@@ -206,19 +207,37 @@ func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdatePro
 	return resDb, s.cache.Set(ctx, profileKey, data, 1*time.Hour)
 }
 func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
-	// profile, errGet := s.repo.GetProfile(ctx, userId) // TODO: get also urls
-	// if errGet != nil {
-	// 	return errGet
-	// }
-
 	stack_key := fmt.Sprintf("stack:%s", userId)
 	profile_key := fmt.Sprintf("profile:%s", userId)
 
 	if errCache := s.cache.Del(ctx, stack_key, profile_key); errCache != nil {
 		return errCache
 	}
-	// TODO: удалять фото из s3
-	return s.repo.DeleteProfile(ctx, userId)
+
+	_, errTx := s.txMng.WithTx(ctx, func(ctx context.Context) (any, error) {
+		photos, errPhotos := s.repo.GetPhotos(ctx, userId)
+		if errPhotos != nil {
+			return nil, errPhotos
+		}
+
+		if errDb := s.repo.DeleteProfile(ctx, userId); errDb != nil {
+			return nil, errDb
+		}
+
+		// Preparation before deletion in storage
+		photosIds := make([]string, len(photos.PhotosIds))
+		for i := range len(photos.PhotosIds) {
+			photosIds[i] = photos.PhotosIds[i].String()
+		}
+
+		if errStor := s.storage.DeleteObjects(ctx, &s.cfg.RustFSBucketName, &photosIds); errStor != nil {
+			return nil, errStor
+		}
+
+		return nil, nil
+	})
+
+	return errTx
 }
 
 func (s *Service) genPasswordHash(password string) (string, error) {

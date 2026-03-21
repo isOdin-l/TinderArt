@@ -5,6 +5,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+// UUID
 func ToPgUUID(v *uuid.UUID) pgtype.UUID {
 	if v == nil {
 		return pgtype.UUID{
@@ -22,6 +23,17 @@ func FromPgUUID(v *pgtype.UUID) uuid.UUID {
 	return uuid.UUID(v.Bytes)
 }
 
+func FromPgUUIDArray(v []pgtype.UUID) *[]uuid.UUID {
+	res := make([]uuid.UUID, len(v))
+
+	for idx := range len(v) {
+		res[idx] = FromPgUUID(&v[idx])
+	}
+
+	return &res
+}
+
+// TEXT
 func ToPgText(v *string) pgtype.Text {
 	if v == nil {
 		return pgtype.Text{
@@ -39,6 +51,7 @@ func FromPgText(v *pgtype.Text) string {
 	return v.String
 }
 
+// BOOL
 func ToPgBoll(v *bool) pgtype.Bool {
 	if v == nil {
 		return pgtype.Bool{
@@ -56,6 +69,7 @@ func FromPgBool(v pgtype.Bool) *bool {
 	return &v.Bool
 }
 
+// INT
 func ToPgInt4(v *int) pgtype.Int4 {
 	if v == nil {
 		return pgtype.Int4{Valid: false}

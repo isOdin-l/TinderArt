@@ -7,6 +7,11 @@ import (
 )
 
 // DB ---> ENTITY
+func FromGetPhotosToEntity(req *[]pgtype.UUID) *entities.Profile {
+	return &entities.Profile{
+		PhotosIds: *db_models.FromPgUUIDArray(*req),
+	}
+}
 
 // ENTITY ---> DB
 func FromEntityToCreatePhotos(entity *entities.Profile) *db_models.CreatePhotosParams {
