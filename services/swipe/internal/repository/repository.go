@@ -2,50 +2,39 @@ package repository
 
 import (
 	"context"
-	"errors"
 
-	"github.com/isOdin-l/TinderArt/services/swipe/internal/database/sqlc"
+	"github.com/isOdin-l/TinderArt/pkg/db_models"
 	"github.com/isOdin-l/TinderArt/services/swipe/internal/entities"
 )
 
+type QueryBuilder interface {
+	InsertUpdateSwipe(ctx context.Context, arg db_models.InsertUpdateSwipeParams) (db_models.InsertUpdateSwipeRow, error)
+}
+
 type Repository struct {
-	q *sqlc.Queries
+	q QueryBuilder
 }
 
-func NewRepository(db sqlc.DBTX) *Repository {
-	return &Repository{q: sqlc.New(db)}
+func NewRepository(db db_models.DBTX) *Repository {
+	return &Repository{q: db_models.New(db)}
 }
 
-func (r *Repository) CreateSwipe(ctx context.Context, swipe *entities.Swipe) error {
-	insertModel := sqlc.InsertSwipeParams{
-		ID:        ToPgUUID(&swipe.Id),
-		UserID1:   ToPgUUID(&swipe.UserId),
-		UserID2:   ToPgUUID(&swipe.TargetId),
-		Desicion1: ToPgBool(swipe.Decision1),
+func (r *Repository) CreateUpdateSwipe(ctx context.Context, swipe *entities.Swipe) error {
+	insertModel := db_models.InsertUpdateSwipeParams{
+		ID:        db_models.ToPgUUID(&swipe.Id),
+		UserID1:   db_models.ToPgUUID(&swipe.UserId),
+		UserID2:   db_models.ToPgUUID(&swipe.TargetId),
+		Desicion1: db_models.ToPgBoll(swipe.Decision1),
+		Desicion2: db_models.ToPgBoll(swipe.Decision2),
 	}
 
-	swipeId, errDB := r.q.InsertSwipe(ctx, insertModel)
+	res, errDB := r.q.InsertUpdateSwipe(ctx, insertModel)
 	if errDB != nil {
 		return errDB
 	}
-	if swipeId.String() != swipe.Id.String() {
-		return errors.New("Already exist")
-	}
+
+	swipe.Decision1 = db_models.FromPgBool(res.Desicion1)
+	swipe.Decision2 = db_models.FromPgBool(res.Desicion2)
 
 	return nil
-}
-
-func (r *Repository) UpdateSwipe(ctx context.Context, swipe *entities.Swipe) (bool, bool, error) {
-	updateParams := sqlc.UpdateSwipeParams{
-		UserID1:   ToPgUUID(&swipe.UserId),
-		UserID2:   ToPgUUID(&swipe.TargetId),
-		Desicion2: ToPgBool(swipe.Decision2),
-	}
-
-	updateRow, errUpdate := r.q.UpdateSwipe(ctx, updateParams)
-	if errUpdate != nil {
-		return false, false, errUpdate
-	}
-
-	return updateRow.Desicion1.Bool, updateRow.Desicion2.Bool, nil
 }

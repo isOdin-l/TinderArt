@@ -41,7 +41,7 @@ func FromAPIRefreshTokenToRefreshToken(req *api.RefreshAccessToken) *entities.Re
 func FromLoginToTokenResponse(login *entities.Login) *api.TokenResponse {
 	return &api.TokenResponse{
 		AccessToken:  login.AccessToken,
-		RefreshToken: login.AccessToken,
+		RefreshToken: login.RefreshToken,
 	}
 }
 

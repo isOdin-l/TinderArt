@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -36,7 +37,7 @@ func (s *Service) GenerateDailyStack(ctx context.Context) error {
 			return errMatch
 		}
 
-		key := []string{profile.String()}
+		key := []string{fmt.Sprintf("stack:%s", profile.String())}
 
 		lua := `
 		redis.call("DEL", KEYS[1])

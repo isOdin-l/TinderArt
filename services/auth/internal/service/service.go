@@ -14,7 +14,7 @@ import (
 
 var (
 	accessSignType  = jwt.SigningMethodHS256
-	refreshSignType = jwt.SigningMethodES256
+	refreshSignType = jwt.SigningMethodHS512
 )
 
 type IRepo interface {
@@ -60,6 +60,7 @@ func (s *AuthService) Login(ctx context.Context, entity *entities.Login) error {
 		if errRepo != nil {
 			return nil, errRepo
 		}
+
 		// Verify password
 		if errCompare := bcrypt.CompareHashAndPassword([]byte(userDb.Password), []byte(entity.Password)); errCompare != nil {
 			return nil, errCompare
@@ -71,11 +72,13 @@ func (s *AuthService) Login(ctx context.Context, entity *entities.Login) error {
 		if errTokens != nil {
 			return nil, errTokens
 		}
+
 		entity.RefreshToken, errTokens = s.signRefreshToken(userDb.UserId)
 		if errTokens != nil {
 			return nil, errTokens
 		}
 
+		entity.UserId = userDb.UserId
 		// Save refresh token
 		return nil, s.repo.SaveRefreshToken(ctx, entity.UserId, entity.RefreshToken)
 	})

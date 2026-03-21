@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -36,7 +37,7 @@ func (h *Handler) CreateProfile(c *echo.Context) error {
 
 	errService := h.service.CreateProfile(c.Request().Context(), entity)
 	if errService != nil {
-		return c.JSON(http.StatusInternalServerError, "Internal server error")
+		return c.JSON(http.StatusInternalServerError, errService.Error())
 	}
 
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPICreateProfile(entity))
@@ -50,7 +51,7 @@ func (h *Handler) GetProfile(c *echo.Context) error {
 
 	profile, errService := h.service.GetProfile(c.Request().Context(), mapper.FromAPIGetProfileToEntity(&req))
 	if errService != nil {
-		return c.JSON(http.StatusInternalServerError, "Internal server error")
+		return c.JSON(http.StatusInternalServerError, errService.Error())
 	}
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPIGetProfile(profile))
 }
@@ -60,6 +61,9 @@ func (h *Handler) UpdateProfile(c *echo.Context) error {
 	if errBind := c.Bind(&req); errBind != nil {
 		return c.JSON(http.StatusBadRequest, "invalid data")
 	}
+
+	// Move from api model to entity and
+	// get userId from context
 	entity := mapper.FromAPIUpdateProfileToEntity(&req)
 	entity.UserId = c.Get("user_id").(uuid.UUID)
 
@@ -73,8 +77,10 @@ func (h *Handler) UpdateProfile(c *echo.Context) error {
 func (h *Handler) DeleteProfile(c *echo.Context) error {
 	// Get from context userId
 	userId := c.Get("user_id").(uuid.UUID)
-
-	h.service.DeleteProfile(c.Request().Context(), userId)
+	slog.Info(userId.String())
+	if errServ := h.service.DeleteProfile(c.Request().Context(), userId); errServ != nil {
+		return c.JSON(http.StatusInternalServerError, errServ.Error())
+	}
 
 	return c.NoContent(http.StatusOK)
 }

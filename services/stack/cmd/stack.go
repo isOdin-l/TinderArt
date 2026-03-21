@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/isOdin-l/TinderArt/pkg/postgres"
 	"github.com/isOdin-l/TinderArt/pkg/redis"
@@ -40,6 +41,20 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	// Run stack generation
-	service.GenerateDailyStack(ctx)
+	ticker := time.NewTicker(time.Duration(cfg.TickPeriodHours) * time.Hour)
+
+	go runDailyStackGeneration(ctx, ticker, service)
+
+	<-ctx.Done()
+}
+
+func runDailyStackGeneration(ctx context.Context, ticker *time.Ticker, service *service.Service) error {
+	// Infinity loop with block by ticker chanel, which opens every ticke
+	// and we generate new stacks for users
+	for {
+		<-ticker.C
+		if errServ := service.GenerateDailyStack(ctx); errServ != nil {
+			slog.Error(fmt.Sprintf("Internal server error: %s", errServ.Error()))
+		}
+	}
 }

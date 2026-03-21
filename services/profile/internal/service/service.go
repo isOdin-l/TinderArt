@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
@@ -11,87 +14,241 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type ICache interface {
+	Set(ctx context.Context, key string, value any, timeExpire time.Duration) error
+	Get(ctx context.Context, key string) (string, error)
+	LRange(ctx context.Context, key string, start, end int64) ([]any, error)
+	Del(ctx context.Context, keys ...string) error
+}
+
 type IRepository interface {
+	// Profile
 	CreateProfile(ctx context.Context, profile *entities.Profile) error
 	GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
 	UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error)
 	DeleteProfile(ctx context.Context, userId uuid.UUID) error
+
+	// Preference
+	CreatePreferences(ctx context.Context, profile *entities.Profile) error
+	UpdatePreferences(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error)
+
+	// Photos
+	CreatePhotos(ctx context.Context, profile *entities.Profile) error
+	GetPhotos(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
+
+	// FavArtStyles
+	CreateFavArtStyle(ctx context.Context, profile *entities.Profile) error
 }
 
 type IStorage interface {
 	PutObject(ctx context.Context, bucket, key *string, body io.Reader) error
-	GetObject(ctx context.Context, bucket, key *string) ([]byte, error)
+	DeleteObjects(ctx context.Context, bucket *string, keys *[]string) error
+}
+
+type ITxManagaer interface {
+	WithTx(ctx context.Context, fn func(ctx context.Context) (any, error)) (any, error)
 }
 
 type Service struct {
 	repo        IRepository
 	storage     IStorage
 	grpc_client grpc_auth.AuthServiceClient
-	cfg         *config.InternalConfig
+	cfg         *config.Config
+	txMng       ITxManagaer
+	cache       ICache
 }
 
-func NewService(repo IRepository, storage IStorage, grpc_client grpc_auth.AuthServiceClient, cfg *config.InternalConfig) *Service {
+func NewService(cfg *config.Config, repo IRepository, storage IStorage, grpc_client grpc_auth.AuthServiceClient, txMng ITxManagaer, cache ICache) *Service {
 	return &Service{
 		repo:        repo,
 		storage:     storage,
 		grpc_client: grpc_client,
 		cfg:         cfg,
+		txMng:       txMng,
+		cache:       cache,
 	}
 }
 
 func (s *Service) CreateProfile(ctx context.Context, profile *entities.Profile) error {
 	// Password hashing
-	var errHash error
-	profile.Password, errHash = s.genPasswordHash(profile.Password)
-	if errHash != nil {
-		return errHash
-	}
-
-	//Call database to create profile
-	errDb := s.repo.CreateProfile(ctx, profile)
-	if errDb != nil {
-		return errDb
+	var errPrep error
+	profile.Password, errPrep = s.genPasswordHash(profile.Password)
+	if errPrep != nil {
+		return errPrep
 	}
 
 	// Create new userID
-	userId, errUid := uuid.NewV7()
-	if errUid != nil {
-		return errUid
+	profile.UserId, errPrep = uuid.NewV7()
+	if errPrep != nil {
+		return errPrep
+	}
+
+	// Create uuid for favart
+	for idx := range len(profile.FavArtStyles) {
+		profile.FavArtStylesIds[idx], errPrep = uuid.NewV7()
+		if errPrep != nil {
+			return errPrep
+		}
+	}
+
+	// Create photos data
+	for idx := range len(profile.PhotoFiles) {
+		profile.PhotosIds[idx], errPrep = uuid.NewV7()
+		if errPrep != nil {
+			return errPrep
+		}
+
+		profile.PhotoUrls[idx] = s.cfg.ConfigRustFS.ObjPath(profile.PhotosIds[idx].String())
+	}
+
+	_, errTx := s.txMng.WithTx(ctx, func(ctx context.Context) (any, error) {
+		//Call database to insert data into profile, preferences, photos, fav_art_styles
+		if errCreate := s.repo.CreateProfile(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+		if errCreate := s.repo.CreatePreferences(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+		if errCreate := s.repo.CreatePhotos(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+		if errCreate := s.repo.CreateFavArtStyle(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+
+		// Put photos to s3
+		var filename string
+		for idx, fileHeader := range profile.PhotoFiles {
+			file, errOpen := fileHeader.Open()
+			if errOpen != nil {
+				return nil, errOpen
+			}
+			defer file.Close()
+
+			filename = profile.PhotosIds[idx].String()
+
+			if errPut := s.storage.PutObject(ctx, &s.cfg.RustFSBucketName, &filename, file); errPut != nil {
+				return nil, errPut
+			}
+		}
+
+		return nil, nil
+	})
+	if errTx != nil {
+		return errTx
 	}
 
 	// Call Auth by gRPC to sign refresh and access tokens
 	result, errCall := s.grpc_client.CreateUser(ctx, &grpc_auth.CreateUserRequest{
-		UserId: userId.String(),
+		UserId: profile.UserId.String(),
 	})
 	if errCall != nil {
 		return errCall
 	}
 
 	// Updating entity fields
-	profile.UserId = userId
 	profile.AccessToken = result.AccessToken
 	profile.RefreshToken = result.RefreshToken
 
 	return nil
 }
 func (s *Service) GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error) {
-	return s.repo.GetProfile(ctx, userId)
-}
-func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error) {
-	return s.repo.UpdateProfile(ctx, profile)
-}
-func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
-	profile, errGet := s.repo.GetProfile(ctx, userId)
-	if errGet != nil {
-		return nil
+	cacheKey := fmt.Sprintf("profile:%s", userId.String())
+
+	// Try to get user from redis
+	userCache, errSearch := s.cache.Get(ctx, cacheKey)
+	if errSearch == nil {
+		var user entities.Profile
+		return &user, json.Unmarshal([]byte(userCache), &user)
 	}
 
-	// + удалять фото из s3
+	// Get user from DB
+	userDb, errDb := s.repo.GetProfile(ctx, userId)
+	if errDb != nil {
+		return nil, errDb
+	}
+	data, _ := json.Marshal(userDb)
 
-	return s.repo.DeleteProfile(ctx, profile.UserId)
+	// Set user to cache and return data from DB
+	return userDb, s.cache.Set(ctx, cacheKey, data, 1*time.Hour)
+}
+func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error) {
+	if profile.Password != nil {
+		tmpPass, errHash := s.genPasswordHash(*profile.Password)
+		if errHash != nil {
+			return nil, errHash
+		}
+		profile.Password = &tmpPass
+	}
+
+	res, errTx := s.txMng.WithTx(ctx, func(ctx context.Context) (any, error) {
+		_, errUpdate := s.repo.UpdateProfile(ctx, profile)
+		if errUpdate != nil {
+			return nil, errUpdate
+		}
+
+		_, errUpdate = s.repo.UpdatePreferences(ctx, profile)
+		if errUpdate != nil {
+			return nil, errUpdate
+		}
+
+		return s.repo.GetProfile(ctx, profile.UserId)
+	})
+	if errTx != nil {
+		return nil, errTx
+	}
+
+	resDb := res.(*entities.Profile)
+
+	// Prepare data for writing to redis
+	profileKey := fmt.Sprintf("profile:%s", profile.UserId.String())
+	data, _ := json.Marshal(resDb)
+
+	return resDb, s.cache.Set(ctx, profileKey, data, 1*time.Hour)
+}
+func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
+	stack_key := fmt.Sprintf("stack:%s", userId)
+	profile_key := fmt.Sprintf("profile:%s", userId)
+
+	if errCache := s.cache.Del(ctx, stack_key, profile_key); errCache != nil {
+		return errCache
+	}
+
+	_, errTx := s.txMng.WithTx(ctx, func(ctx context.Context) (any, error) {
+		photos, errPhotos := s.repo.GetPhotos(ctx, userId)
+		if errPhotos != nil {
+			return nil, errPhotos
+		}
+
+		if errDb := s.repo.DeleteProfile(ctx, userId); errDb != nil {
+			return nil, errDb
+		}
+
+		// Preparation before deletion in storage
+		photosIds := make([]string, len(photos.PhotosIds))
+		for i := range len(photos.PhotosIds) {
+			photosIds[i] = photos.PhotosIds[i].String()
+		}
+
+		if errStor := s.storage.DeleteObjects(ctx, &s.cfg.RustFSBucketName, &photosIds); errStor != nil {
+			return nil, errStor
+		}
+
+		return nil, nil
+	})
+
+	return errTx
 }
 
 func (s *Service) genPasswordHash(password string) (string, error) {
 	hash, errHash := bcrypt.GenerateFromPassword([]byte(password), s.cfg.HashMinCost)
 	return string(hash), errHash
 }
+
+// -- Get stack --
+// For future:
+// 	// 0 - start point; -1 - like the last element, len(arg)-1
+// res, errCache := s.cache.LRange(ctx, userId.String(), 0, -1)
+// if errCache == nil{
+// 	return res
+// }

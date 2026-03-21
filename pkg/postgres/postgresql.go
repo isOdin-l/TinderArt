@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	TxContext = "txPOSTGIS"
+	TxContext = "tx"
 )
 
 type IExecutor interface {

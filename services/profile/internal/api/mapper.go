@@ -12,40 +12,49 @@ func FromAPIGetProfileToEntity(req *api.RequestGetProfile) uuid.UUID {
 
 func FromAPIUpdateProfileToEntity(req *api.RequestUpdateProfile) *entities.UpdateProfile {
 	return &entities.UpdateProfile{
-		Username:    req.Username,
-		Name:        req.Name,
-		Surname:     req.Surname,
-		Email:       req.Email,
-		Password:    req.Password,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
+		Username:                 req.Username,
+		Name:                     req.Name,
+		Surname:                  req.Surname,
+		Email:                    req.Email,
+		Password:                 req.Password,
+		Description:              req.Description,
+		Latitude:                 req.Latitude,
+		Longitude:                req.Longitude,
+		PreferencesMaxDistMeters: req.PreferencesMaxDistMeters,
 	}
 }
 
 func FromEntityToAPIGetProfile(entity *entities.Profile) *api.ResponseProfile {
 	return &api.ResponseProfile{
-		Username:    entity.Username,
-		Name:        entity.Name,
-		Surname:     entity.Surname,
-		Email:       entity.Email,
-		Password:    entity.Password,
-		Description: entity.Description,
-		Latitude:    entity.Latitude,
-		Longitude:   entity.Longitude,
+		Username:     entity.Username,
+		Name:         entity.Name,
+		Surname:      entity.Surname,
+		Email:        entity.Email,
+		Password:     entity.Password,
+		Description:  entity.Description,
+		Latitude:     entity.Latitude,
+		Longitude:    entity.Longitude,
+		PhotoUrls:    entity.PhotoUrls,
+		FavArtStyles: entity.FavArtStyles,
 	}
 }
 
 func FromAPICreateProfileToEntity(req *api.RequestCreateaProfile) *entities.Profile {
 	return &entities.Profile{
-		Username:    req.Username,
-		Name:        req.Name,
-		Surname:     req.Surname,
-		Email:       req.Email,
-		Password:    req.Email,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
+		Username:                 req.Username,
+		Name:                     req.Name,
+		Surname:                  req.Surname,
+		Email:                    req.Email,
+		Password:                 req.Password,
+		Description:              req.Description,
+		Latitude:                 req.Latitude,
+		Longitude:                req.Longitude,
+		PreferencesMaxDistMeters: req.PreferencesMaxDistMeters,
+		FavArtStyles:             req.FavArtStyles,
+		FavArtStylesIds:          make([]uuid.UUID, len(req.FavArtStyles)),
+		PhotoFiles:               req.Photos,
+		PhotoUrls:                make([]string, len(req.Photos)),
+		PhotosIds:                make([]uuid.UUID, len(req.Photos)),
 	}
 
 }

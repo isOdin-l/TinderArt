@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	"github.com/labstack/echo/v5"
 )
@@ -33,7 +34,7 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 			token := strings.TrimPrefix(authHeader, "Bearer ")
 			if token == authHeader {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid token",
+					"error": "invalid token1",
 				})
 			}
 
@@ -44,12 +45,13 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 
 			if errVal != nil {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid token",
+					"error": errVal.Error(),
 				})
 			}
 
 			// put uesr_id to context
-			c.Set(UserIdContextKey, response.UserId)
+			ctxUser := uuid.MustParse(response.UserId)
+			c.Set(UserIdContextKey, ctxUser)
 
 			return next(c)
 		}

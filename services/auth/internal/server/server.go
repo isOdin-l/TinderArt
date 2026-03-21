@@ -30,10 +30,10 @@ type Server struct {
 
 func NewServer(cfgHTTP *config.ServerConfig, cfgGRPC *configs.ConfigGrpcServer, routerHTTP *echo.Echo, routerGRPC grpc_auth.AuthServiceServer) (*Server, error) {
 	var server Server
-
+	server.httpRouter = routerHTTP
 	// HTTP
 	server.httpServerCfg = &echo.StartConfig{
-		Address:         cfgHTTP.HttpServerPort,
+		Address:         fmt.Sprintf(":%s", cfgHTTP.HttpServerPort),
 		GracefulTimeout: 5 * time.Second,
 	}
 

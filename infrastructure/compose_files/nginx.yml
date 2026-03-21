@@ -6,6 +6,9 @@ services:
 
     ports:
       - "80:80"
-    
+
+    networks:
+      - tindart
+
     volumes:
       - ../configs/nginx.conf:/etc/nginx/nginx.conf:ro

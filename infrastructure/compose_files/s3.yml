@@ -6,11 +6,10 @@ services:
       - "9000:9000"
       - "9001:9001"
     env_file:
-      - ../../configs/s3.env
+      - ../configs/rustfs.env
     volumes:
+      # - ../configs/rustfs.toml:/etc/rustfs/config.toml
       - ../../data/s3:/data
     networks:
-      - s3-network
-networks:
-  s3-network:
-    driver: bridge
+      - tindart
+    # command: ["server", "--config", "/etc/rustfs/config.toml"]

@@ -16,8 +16,6 @@ func NewRouter(e *echo.Echo, cfg *config.Config, h IHandlerRest) {
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
-	auth := e.Group("/auth")
-
-	auth.POST("/sign-in", h.SignIn)
-	auth.POST("/refresh", h.RefreshToken)
+	e.POST("/sign-in", h.SignIn)
+	e.POST("/refresh", h.RefreshToken)
 }

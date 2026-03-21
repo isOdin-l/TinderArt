@@ -31,7 +31,7 @@ func (h *Handler) CreateSwipe(c *echo.Context) error {
 	entity := mapper.FromApiSwipeToEntity(&req)
 	errService := h.service.CreateSwipe(c.Request().Context(), entity)
 	if errService != nil {
-		return c.JSON(http.StatusInternalServerError, "Internal server error")
+		return c.JSON(http.StatusInternalServerError, errService.Error())
 	}
 	return c.NoContent(http.StatusOK)
 }

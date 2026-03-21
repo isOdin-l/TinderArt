@@ -6,6 +6,7 @@ import (
 )
 
 type IHandler interface {
+	CreateProfile(c *echo.Context) error
 	GetProfile(c *echo.Context) error
 	UpdateProfile(c *echo.Context) error
 	DeleteProfile(c *echo.Context) error
@@ -19,9 +20,17 @@ func NewRoutes(router *echo.Echo, h IHandler, md IMiddleware) {
 	router.Use(middleware.RequestID())
 	router.Use(middleware.RequestLogger())
 	router.Use(middleware.Recover())
-	router.Use(md.Validation()) // Validate token in Authorization header and put it into context
 
-	router.GET("/profile", h.GetProfile)
-	router.PATCH("/profile", h.UpdateProfile)
-	router.DELETE("/profile", h.DeleteProfile)
+	router.POST("/create", h.CreateProfile)
+
+	protected := router.Group("/protected")
+	protected.Use(md.Validation()) // Validate token in Authorization header and put it into context
+
+	protected.GET("/get", h.GetProfile)
+	protected.PATCH("/update", h.UpdateProfile)
+	protected.DELETE("/delete", h.DeleteProfile)
+
+	// router.PATCH("/update", h.UpdatePreferences)
+	// router.DELETE("/delete", h.DeletePhotos)
+	// etc
 }

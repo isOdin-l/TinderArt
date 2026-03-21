@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/isOdin-l/TinderArt/services/swipe/config"
@@ -10,7 +11,7 @@ import (
 
 func RunServer(ctx context.Context, router *echo.Echo, cfg *config.ConfigServer) error {
 	server := echo.StartConfig{
-		Address:         cfg.HttpServerPort,
+		Address:         fmt.Sprintf(":%s", cfg.HttpServerPort),
 		GracefulTimeout: 5 * time.Second,
 	}
 

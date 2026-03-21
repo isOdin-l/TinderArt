@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/isOdin-l/TinderArt/pkg/configs"
 )
 
@@ -19,7 +20,7 @@ func NewRustFS(cfg *configs.ConfigRustFS) *RustFS {
 		Region: cfg.RustFSRegion,
 		EndpointResolver: aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
 			return aws.Endpoint{
-				URL: cfg.RustFSEndpoint,
+				URL: cfg.DSN(),
 			}, nil
 		}),
 		Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(
@@ -35,6 +36,7 @@ func NewRustFS(cfg *configs.ConfigRustFS) *RustFS {
 }
 
 func (storage *RustFS) PutObject(ctx context.Context, bucket, key *string, body io.Reader) error {
+	storage.Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{})
 	_, err := storage.Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: bucket,
 		Key:    key,
@@ -59,4 +61,21 @@ func (storage *RustFS) GetObject(ctx context.Context, bucket, key *string) ([]by
 	}
 
 	return data, nil
+}
+
+func (storage *RustFS) DeleteObjects(ctx context.Context, bucket *string, keys *[]string) error {
+	objDel := make([]types.ObjectIdentifier, len(*keys))
+
+	for idx, key := range *keys {
+		objDel[idx] = types.ObjectIdentifier{Key: &key}
+	}
+
+	_, errDel := storage.Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
+		Bucket: bucket,
+		Delete: &types.Delete{
+			Objects: objDel,
+		},
+	})
+
+	return errDel
 }
