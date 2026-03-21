@@ -74,3 +74,17 @@ SELECT id FROM photos WHERE profile_id = $1;
 -- name: DeletePhotos :exec
 DELETE FROM photos
 WHERE profile_id = $1 AND id = ANY($2::uuid[]);
+
+
+-- name: FindProfileMatches :many
+SELECT DISTINCT f2.profile_id
+FROM fav_art_styles f1
+JOIN fav_art_styles f2 ON f1.style = f2.style
+JOIN profiles p2 ON p2.id = f2.profile_id
+JOIN profiles p1 ON p1.id = $1
+JOIN preferences pref ON pref.profile_id = $1
+WHERE
+    f1.profile_id = $1
+    AND f2.profile_id != $1
+    AND ST_DWithin(p1.location, p2.location, pref.max_distance_meters)
+LIMIT 100;

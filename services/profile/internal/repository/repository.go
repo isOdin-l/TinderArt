@@ -28,6 +28,9 @@ type QueryBuilder interface {
 
 	// FavArtStyles
 	CreateFavArtStyle(ctx context.Context, arg db_models.CreateFavArtStyleParams) error
+
+	// Stack
+	FindProfileMatches(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error)
 }
 
 type Repository struct {
@@ -91,6 +94,10 @@ func (repo *Repository) GetPhotos(ctx context.Context, userId uuid.UUID) (*entit
 	return mappers.FromGetPhotosToEntity(&photosUrls), errDb
 }
 
-// func (repo *Repository) DeletePhotos(ctx context.Context, profile *entities.Profile) error {
-// 	return repo.query.DeletePhotos(ctx, *FromEntityToDeletePhotos(profile))
-// }
+func (repo *Repository) GetStack(ctx context.Context, userId uuid.UUID) (*entities.Profile, error) {
+	matchesDb, errDb := repo.query.FindProfileMatches(ctx, db_models.ToPgUUID(&userId))
+	if errDb != nil {
+		return nil, errDb
+	}
+	return mappers.FromMatchesDBToEntity(matchesDb), nil
+}

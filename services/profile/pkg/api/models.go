@@ -62,3 +62,7 @@ type ResponseCreateProfile struct {
 	AccessToken  string  `json:"access_token"`
 	RefreshToken string  `json:"refresh_token"`
 }
+
+type ResponseGetStack struct {
+	Matches []string `json:"matches"`
+}

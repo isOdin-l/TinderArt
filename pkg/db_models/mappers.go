@@ -33,6 +33,16 @@ func FromPgUUIDArray(v []pgtype.UUID) *[]uuid.UUID {
 	return &res
 }
 
+func FromPgUUIDTextArray(req []pgtype.UUID) *[]string {
+	maches := make([]string, len(req))
+
+	for idx := range len(req) {
+		maches[idx] = req[idx].String()
+	}
+
+	return &maches
+}
+
 // TEXT
 func ToPgText(v *string) pgtype.Text {
 	if v == nil {

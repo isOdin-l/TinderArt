@@ -120,6 +120,40 @@ func (q *Queries) DeleteProfile(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const findProfileMatches = `-- name: FindProfileMatches :many
+SELECT DISTINCT f2.profile_id
+FROM fav_art_styles f1
+JOIN fav_art_styles f2 ON f1.style = f2.style
+JOIN profiles p2 ON p2.id = f2.profile_id
+JOIN profiles p1 ON p1.id = $1
+JOIN preferences pref ON pref.profile_id = $1
+WHERE
+    f1.profile_id = $1
+    AND f2.profile_id != $1
+    AND ST_DWithin(p1.location, p2.location, pref.max_distance_meters)
+LIMIT 100
+`
+
+func (q *Queries) FindProfileMatches(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, findProfileMatches, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.UUID{}
+	for rows.Next() {
+		var profile_id pgtype.UUID
+		if err := rows.Scan(&profile_id); err != nil {
+			return nil, err
+		}
+		items = append(items, profile_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPhotos = `-- name: GetPhotos :many
 SELECT id FROM photos WHERE profile_id = $1
 `

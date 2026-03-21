@@ -39,10 +39,6 @@ func (cache *Redis) LRange(ctx context.Context, key string, start, end int64) ([
 	return res.Args(), nil
 }
 
-func (cache *Redis) Do(ctx context.Context, args ...any) error {
-	return cache.Client.Do(ctx, args...).Err()
-}
-
 func (cache *Redis) RPush(ctx context.Context, key string, args ...any) error {
 	return cache.Client.RPush(ctx, key, args...).Err()
 }
@@ -53,4 +49,8 @@ func (cache *Redis) Eval(ctx context.Context, script string, keys []string, args
 
 func (cache *Redis) Del(ctx context.Context, keys ...string) error {
 	return cache.Client.Del(ctx, keys...).Err()
+}
+
+func (cache *Redis) LPopCount(ctx context.Context, key string, count int) ([]string, error) {
+	return cache.Client.LPopCount(ctx, key, count).Result()
 }

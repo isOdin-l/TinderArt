@@ -30,6 +30,9 @@ type Profile struct {
 	// Favourite art style
 	FavArtStylesIds []uuid.UUID
 	FavArtStyles    []string
+
+	// Matches
+	Matches []string
 }
 
 type UpdateProfile struct {

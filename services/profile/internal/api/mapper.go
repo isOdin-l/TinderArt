@@ -72,3 +72,9 @@ func FromEntityToAPICreateProfile(e *entities.Profile) *api.ResponseCreateProfil
 		RefreshToken: e.RefreshToken,
 	}
 }
+
+func FromEntityToAPIGetStack(e *entities.Profile) *api.ResponseGetStack {
+	return &api.ResponseGetStack{
+		Matches: e.Matches,
+	}
+}

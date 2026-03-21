@@ -17,6 +17,7 @@ type IService interface {
 	GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
 	UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error)
 	DeleteProfile(ctx context.Context, userId uuid.UUID) error
+	GetStack(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
 }
 
 type Handler struct {
@@ -79,8 +80,19 @@ func (h *Handler) DeleteProfile(c *echo.Context) error {
 	userId := c.Get("user_id").(uuid.UUID)
 	slog.Info(userId.String())
 	if errServ := h.service.DeleteProfile(c.Request().Context(), userId); errServ != nil {
-		return c.JSON(http.StatusInternalServerError, errServ.Error())
+		return c.JSON(http.StatusInternalServerError, "Internal server error")
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) GetStack(c *echo.Context) error {
+	userId := c.Get("user_id").(uuid.UUID)
+
+	entity, errServer := h.service.GetStack(c.Request().Context(), userId)
+	if errServer != nil {
+		return c.JSON(http.StatusInternalServerError, errServer.Error())
+	}
+
+	return c.JSON(http.StatusOK, mapper.FromEntityToAPIGetStack(entity))
 }

@@ -17,7 +17,8 @@ import (
 type ICache interface {
 	Set(ctx context.Context, key string, value any, timeExpire time.Duration) error
 	Get(ctx context.Context, key string) (string, error)
-	LRange(ctx context.Context, key string, start, end int64) ([]any, error)
+	RPush(ctx context.Context, key string, args ...any) error
+	LPopCount(ctx context.Context, key string, count int) ([]string, error)
 	Del(ctx context.Context, keys ...string) error
 }
 
@@ -38,6 +39,9 @@ type IRepository interface {
 
 	// FavArtStyles
 	CreateFavArtStyle(ctx context.Context, profile *entities.Profile) error
+
+	//Stack
+	GetStack(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
 }
 
 type IStorage interface {
@@ -240,15 +244,24 @@ func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
 	return errTx
 }
 
+func (s *Service) GetStack(ctx context.Context, userId uuid.UUID) (*entities.Profile, error) {
+	cacheKey := fmt.Sprintf("stack:%s", userId)
+
+	// Try to get stack from cache
+	matchesCache, errCache := s.cache.LPopCount(ctx, cacheKey, 20)
+	if errCache == nil {
+		return &entities.Profile{Matches: matchesCache}, nil
+	}
+
+	entity, errRepo := s.repo.GetStack(ctx, userId)
+	if errRepo != nil {
+		return nil, errRepo
+	}
+
+	return entity, s.cache.RPush(ctx, cacheKey, entity.Matches)
+}
+
 func (s *Service) genPasswordHash(password string) (string, error) {
 	hash, errHash := bcrypt.GenerateFromPassword([]byte(password), s.cfg.HashMinCost)
 	return string(hash), errHash
 }
-
-// -- Get stack --
-// For future:
-// 	// 0 - start point; -1 - like the last element, len(arg)-1
-// res, errCache := s.cache.LRange(ctx, userId.String(), 0, -1)
-// if errCache == nil{
-// 	return res
-// }
