@@ -1,22 +1,29 @@
-CREATE EXTENSION "uuid-ossp";
+-- +goose Up
+-- +goose StatementBegin
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE art_style_enum AS ENUM (
-    'realism',
-    'minimalism',
-    'futurism',
-    'anarchism',
-    'cubism',
-    'surrealism',
-    'impressionism',
-    'expressionism',
-    'constructivism',
-    'dadaism',
-    'photorealism',
-    'romanticism',
-    'cyberpunk'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'art_style_enum') THEN
+        CREATE TYPE art_style_enum AS ENUM (
+            'realism',
+            'minimalism',
+            'futurism',
+            'anarchism',
+            'cubism',
+            'surrealism',
+            'impressionism',
+            'expressionism',
+            'constructivism',
+            'dadaism',
+            'photorealism',
+            'romanticism',
+            'cyberpunk'
+        );
+    END IF;
+END$$;
 
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
@@ -28,13 +35,13 @@ CREATE TABLE profiles (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE preferences (
+CREATE TABLE IF NOT EXISTS preferences (
     profile_id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
     max_distance_meters INT NOT NULL
 );
 
 
-CREATE TABLE fav_art_styles (
+CREATE TABLE IF NOT EXISTS fav_art_styles (
     id UUID PRIMARY KEY,
     profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     style art_style_enum NOT NULL,
@@ -42,12 +49,12 @@ CREATE TABLE fav_art_styles (
     created_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE jwt_tokens (
+CREATE TABLE IF NOT EXISTS jwt_tokens (
     id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
     refresh_token TEXT NOT NULL
 );
 
-CREATE TABLE swipes (
+CREATE TABLE IF NOT EXISTS swipes (
     id UUID PRIMARY KEY,
     user_id_1 UUID NOT NULL,
     user_id_2 UUID NOT NULL,
@@ -56,7 +63,7 @@ CREATE TABLE swipes (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE photos(
+CREATE TABLE IF NOT EXISTS photos(
     id UUID PRIMARY KEY,
     profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     url TEXT NOT NULL,
@@ -65,10 +72,19 @@ CREATE TABLE photos(
 
 
 -- Indexes
-CREATE INDEX profiles_location_idx ON profiles USING GIST (location);
-CREATE INDEX idx_profiles_username ON profiles(username);
+CREATE INDEX IF NOT EXISTS profiles_location_idx ON profiles USING GIST (location);
+CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);
+CREATE INDEX IF NOT EXISTS idx_jwt_tokens_refresh ON jwt_tokens(refresh_token);
+CREATE INDEX IF NOT EXISTS idx_swipes_user1 ON swipes(user_id_1);
+CREATE INDEX IF NOT EXISTS idx_swipes_user2 ON swipes(user_id_2);
+-- +goose StatementEnd
 
-CREATE INDEX idx_jwt_tokens_refresh ON jwt_tokens(refresh_token);
-
-CREATE INDEX idx_swipes_user1 ON swipes(user_id_1);
-CREATE INDEX idx_swipes_user2 ON swipes(user_id_2);
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE profiles;
+DROP TABLE photos;
+DROP TABLE swipes;
+DROP TABLE jwt_tokens;
+DROP TABLE fav_art_styles;
+DROP TABLE preferences;
+-- +goose StatementEnd

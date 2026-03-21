@@ -15,3 +15,14 @@ func ToPgUUID(v *uuid.UUID) pgtype.UUID {
 func FromPgUUID(v *pgtype.UUID) uuid.UUID {
 	return uuid.UUID(v.Bytes)
 }
+
+func ToPgText(v *string) pgtype.Text {
+	return pgtype.Text{
+		String: *v,
+		Valid:  true,
+	}
+}
+
+func FromPgText(v *pgtype.Text) string {
+	return v.String
+}

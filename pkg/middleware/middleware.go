@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
 	"github.com/labstack/echo/v5"
 )
@@ -49,7 +50,8 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 			}
 
 			// put uesr_id to context
-			c.Set(UserIdContextKey, response.UserId)
+			ctxUser := uuid.MustParse(response.UserId)
+			c.Set(UserIdContextKey, ctxUser)
 
 			return next(c)
 		}

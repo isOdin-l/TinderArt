@@ -17,10 +17,10 @@ SELECT id, password FROM profiles WHERE username = $1
 
 type GetUserByUsernameRow struct {
 	ID       pgtype.UUID
-	Password string
+	Password pgtype.Text
 }
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
+func (q *Queries) GetUserByUsername(ctx context.Context, username pgtype.Text) (GetUserByUsernameRow, error) {
 	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i GetUserByUsernameRow
 	err := row.Scan(&i.ID, &i.Password)
@@ -35,7 +35,7 @@ ON CONFLICT (id) DO UPDATE SET refresh_token = $2
 
 type SaveRefreshTokenParams struct {
 	ID           pgtype.UUID
-	RefreshToken string
+	RefreshToken pgtype.Text
 }
 
 func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) error {

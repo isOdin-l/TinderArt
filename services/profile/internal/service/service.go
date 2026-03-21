@@ -11,6 +11,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type ICache interface {
+	LRange(ctx context.Context, key string, start, end int64) ([]any, error)
+}
+
 type IRepository interface {
 	CreateProfile(ctx context.Context, profile *entities.Profile) error
 	GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
@@ -78,6 +82,14 @@ func (s *Service) GetProfile(ctx context.Context, userId uuid.UUID) (*entities.P
 	return s.repo.GetProfile(ctx, userId)
 }
 func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error) {
+	if profile.Password != nil {
+		tmpPass, errHash := s.genPasswordHash(*profile.Password)
+		if errHash != nil {
+			return nil, errHash
+		}
+		profile.Password = &tmpPass
+	}
+
 	return s.repo.UpdateProfile(ctx, profile)
 }
 func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
@@ -95,3 +107,11 @@ func (s *Service) genPasswordHash(password string) (string, error) {
 	hash, errHash := bcrypt.GenerateFromPassword([]byte(password), s.cfg.HashMinCost)
 	return string(hash), errHash
 }
+
+// -- Get stack --
+// For future:
+// 	// 0 - start point; -1 - like the last element, len(arg)-1
+// res, errCache := s.cache.LRange(ctx, userId.String(), 0, -1)
+// if errCache == nil{
+// 	return res
+// }

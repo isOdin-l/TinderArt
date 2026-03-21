@@ -30,6 +30,15 @@ func (cache *Redis) Get(ctx context.Context, key string) (string, error) {
 	return cache.Client.Get(ctx, key).Result()
 }
 
+func (cache *Redis) LRange(ctx context.Context, key string, start, end int64) ([]any, error) {
+	res := cache.Client.LRange(ctx, key, start, end)
+	if res.Err() != nil {
+		return nil, res.Err()
+	}
+
+	return res.Args(), nil
+}
+
 func (cache *Redis) Do(ctx context.Context, args ...any) error {
 	return cache.Client.Do(ctx, args...).Err()
 }

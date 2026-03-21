@@ -55,28 +55,29 @@ func (repo *Repository) UpdateProfile(ctx context.Context, profile *entities.Upd
 	}
 	return FromUpdateResultsToEntity(&row), nil
 }
+
 func (repo *Repository) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
 	return repo.query.DeleteProfile(ctx, ToPgUUID(&userId))
 }
 
 // Preferences
-func (repo *Repository) CreatePreferences(ctx context.Context, profile *entities.Profile) error {
-	return repo.query.CreatePreferences(ctx, *FromEntityToCreatePrefParams(profile))
-}
+// func (repo *Repository) CreatePreferences(ctx context.Context, profile *entities.Profile) error {
+// 	return repo.query.CreatePreferences(ctx, *FromEntityToCreatePrefParams(profile))
+// }
 
-func (repo *Repository) UpdatePreferences(ctx context.Context, profile *entities.Profile) (*entities.Profile, error) {
-	db, errDb := repo.query.UpdatePreferences(ctx, *FromEntityToUpdatePref(profile))
-	if errDb != nil {
-		return nil, errDb
-	}
-	return FromPreferenceToEntity(&db), nil
-}
+// func (repo *Repository) UpdatePreferences(ctx context.Context, profile *entities.Profile) (*entities.Profile, error) {
+// 	db, errDb := repo.query.UpdatePreferences(ctx, *FromEntityToUpdatePref(profile))
+// 	if errDb != nil {
+// 		return nil, errDb
+// 	}
+// 	return FromPreferenceToEntity(&db), nil
+// }
 
 // Photos
-func (repo *Repository) CreatePhotos(ctx context.Context, profile *entities.Profile) error {
-	return repo.query.CreatePhotos(ctx, *FromEntityToCreatePhotos(profile))
-}
+// func (repo *Repository) CreatePhotos(ctx context.Context, profile *entities.Profile) error {
+// 	return repo.query.CreatePhotos(ctx, *FromEntityToCreatePhotos(profile))
+// }
 
-func (repo *Repository) DeletePhotos(ctx context.Context, profile *entities.Profile) error {
-	return repo.query.DeletePhotos(ctx, *FromEntityToDeletePhotos(profile))
-}
+// func (repo *Repository) DeletePhotos(ctx context.Context, profile *entities.Profile) error {
+// 	return repo.query.DeletePhotos(ctx, *FromEntityToDeletePhotos(profile))
+// }

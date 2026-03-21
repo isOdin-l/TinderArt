@@ -74,13 +74,13 @@ type FavArtStyle struct {
 
 type JwtToken struct {
 	ID           pgtype.UUID
-	RefreshToken string
+	RefreshToken pgtype.Text
 }
 
 type Photo struct {
 	ID        pgtype.UUID
 	ProfileID pgtype.UUID
-	Url       string
+	Url       pgtype.Text
 	CreatedAt pgtype.Timestamp
 }
 
@@ -91,12 +91,12 @@ type Preference struct {
 
 type Profile struct {
 	ID          pgtype.UUID
-	Username    string
-	Name        string
-	Surname     string
-	Email       string
-	Password    string
-	Description string
+	Username    pgtype.Text
+	Name        pgtype.Text
+	Surname     pgtype.Text
+	Email       pgtype.Text
+	Password    pgtype.Text
+	Description pgtype.Text
 	Location    postgis.Point
 	CreatedAt   pgtype.Timestamp
 }

@@ -1,5 +1,5 @@
 include:
-  # - path: ./compose_files/s3.yml
+  - path: ./compose_files/s3.yml
   - path: ./compose_files/db_swipes.yml
   - path: ./compose_files/db_profiles.yml
   - path: ./compose_files/cache_db.yml
@@ -48,6 +48,22 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+  profile-service:
+    image: profile-service:dev-0.2
+    container_name: profile-service
+    ports:
+      - "8002:8002" # HTTP port - delete after dev
+    env_file:
+      - ./configs/services/profile.env
+    networks:
+      - tindart
+    depends_on:
+      db_profiles:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      # s3:
+      #   condition: service_healthy
 
 networks:
   tindart:

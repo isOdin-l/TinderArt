@@ -23,7 +23,7 @@ SELECT
 type CreatePhotosParams struct {
 	Ids       []pgtype.UUID
 	ProfileID pgtype.UUID
-	Urls      []string
+	Urls      []pgtype.Text
 }
 
 func (q *Queries) CreatePhotos(ctx context.Context, arg CreatePhotosParams) error {
@@ -53,12 +53,12 @@ VALUES($1, $2, $3, $4, $5, $6, $7, $8)
 
 type CreateProfileParams struct {
 	ID          pgtype.UUID
-	Username    string
-	Name        string
-	Surname     string
-	Email       string
-	Password    string
-	Description string
+	Username    pgtype.Text
+	Name        pgtype.Text
+	Surname     pgtype.Text
+	Email       pgtype.Text
+	Password    pgtype.Text
+	Description pgtype.Text
 	Location    postgis.Point
 }
 
@@ -109,11 +109,11 @@ FROM profiles WHERE id = $1
 
 type GetProfileRow struct {
 	ID          pgtype.UUID
-	Username    string
-	Name        string
-	Surname     string
-	Email       string
-	Description string
+	Username    pgtype.Text
+	Name        pgtype.Text
+	Surname     pgtype.Text
+	Email       pgtype.Text
+	Description pgtype.Text
 	Longitude   interface{}
 	Latitude    interface{}
 }
@@ -168,23 +168,23 @@ RETURNING id, username, name, surname, email, description
 
 type UpdateProfileParams struct {
 	ID          pgtype.UUID
-	Username    string
-	Name        string
-	Surname     string
-	Email       string
-	Password    string
-	Description string
+	Username    pgtype.Text
+	Name        pgtype.Text
+	Surname     pgtype.Text
+	Email       pgtype.Text
+	Password    pgtype.Text
+	Description pgtype.Text
 	Longitude   interface{}
 	Latitude    interface{}
 }
 
 type UpdateProfileRow struct {
 	ID          pgtype.UUID
-	Username    string
-	Name        string
-	Surname     string
-	Email       string
-	Description string
+	Username    pgtype.Text
+	Name        pgtype.Text
+	Surname     pgtype.Text
+	Email       pgtype.Text
+	Description pgtype.Text
 }
 
 func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (UpdateProfileRow, error) {

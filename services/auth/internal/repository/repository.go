@@ -8,6 +8,7 @@ import (
 	"github.com/isOdin-l/TinderArt/pkg/db_models"
 	"github.com/isOdin-l/TinderArt/services/auth/internal/entities"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 )
 
 type QueryBuilder interface {
-	GetUserByUsername(ctx context.Context, username string) (db_models.GetUserByUsernameRow, error)
+	GetUserByUsername(ctx context.Context, username pgtype.Text) (db_models.GetUserByUsernameRow, error)
 	SaveRefreshToken(ctx context.Context, arg db_models.SaveRefreshTokenParams) error
 }
 
@@ -28,7 +29,7 @@ func NewRepository(db db_models.DBTX) *AuthRepository {
 }
 
 func (repo *AuthRepository) GetUserByUsername(ctx context.Context, username string) (*entities.Login, error) {
-	row, err := repo.query.GetUserByUsername(ctx, username)
+	row, err := repo.query.GetUserByUsername(ctx, ToPgText(&username))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNotFound
@@ -37,7 +38,7 @@ func (repo *AuthRepository) GetUserByUsername(ctx context.Context, username stri
 	}
 	return &entities.Login{
 		UserId:   FromPgUUID(&row.ID),
-		Password: row.Password,
+		Password: FromPgText(&row.Password),
 	}, nil
 }
 
@@ -45,7 +46,7 @@ func (repo *AuthRepository) SaveRefreshToken(ctx context.Context, userId uuid.UU
 	return repo.query.SaveRefreshToken(ctx,
 		db_models.SaveRefreshTokenParams{
 			ID:           ToPgUUID(&userId),
-			RefreshToken: refreshToken,
+			RefreshToken: ToPgText(&refreshToken),
 		},
 	)
 }

@@ -3,14 +3,11 @@ services:
     image: rustfs/rustfs:latest
     container_name: s3
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "7000:9000"
+      - "7001:9001"
     env_file:
-      - ../../configs/s3.env
+      - ../configs/rustfs.env
     volumes:
       - ../../data/s3:/data
     networks:
-      - s3-network
-networks:
-  s3-network:
-    driver: bridge
+      - tindart
