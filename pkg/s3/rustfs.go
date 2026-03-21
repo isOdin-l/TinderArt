@@ -19,7 +19,7 @@ func NewRustFS(cfg *configs.ConfigRustFS) *RustFS {
 		Region: cfg.RustFSRegion,
 		EndpointResolver: aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
 			return aws.Endpoint{
-				URL: cfg.RustFSEndpoint,
+				URL: cfg.DSN(),
 			}, nil
 		}),
 		Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(

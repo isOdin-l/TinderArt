@@ -8,9 +8,27 @@ package db_models
 import (
 	"context"
 
-	"github.com/cridenour/go-postgis"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createFavArtStyle = `-- name: CreateFavArtStyle :exec
+INSERT INTO fav_art_styles (id, profile_id, style)
+SELECT
+    UNNEST($1::uuid[]),
+    $2,
+    UNNEST($3::text[])::art_style_enum
+`
+
+type CreateFavArtStyleParams struct {
+	Ids       []pgtype.UUID
+	ProfileID pgtype.UUID
+	Styles    []pgtype.Text
+}
+
+func (q *Queries) CreateFavArtStyle(ctx context.Context, arg CreateFavArtStyleParams) error {
+	_, err := q.db.Exec(ctx, createFavArtStyle, arg.Ids, arg.ProfileID, arg.Styles)
+	return err
+}
 
 const createPhotos = `-- name: CreatePhotos :exec
 INSERT INTO photos (id, profile_id, url)
@@ -48,18 +66,19 @@ func (q *Queries) CreatePreferences(ctx context.Context, arg CreatePreferencesPa
 
 const createProfile = `-- name: CreateProfile :exec
 INSERT INTO profiles (id, username, name, surname, email, password, description, location)
-VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+VALUES($1, $2, $3, $4, $5, $6, $7, ST_SetSRID(ST_MakePoint($8, $9), 4326))
 `
 
 type CreateProfileParams struct {
-	ID          pgtype.UUID
-	Username    pgtype.Text
-	Name        pgtype.Text
-	Surname     pgtype.Text
-	Email       pgtype.Text
-	Password    pgtype.Text
-	Description pgtype.Text
-	Location    postgis.Point
+	ID            pgtype.UUID
+	Username      pgtype.Text
+	Name          pgtype.Text
+	Surname       pgtype.Text
+	Email         pgtype.Text
+	Password      pgtype.Text
+	Description   pgtype.Text
+	StMakepoint   interface{}
+	StMakepoint_2 interface{}
 }
 
 func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) error {
@@ -71,7 +90,8 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) er
 		arg.Email,
 		arg.Password,
 		arg.Description,
-		arg.Location,
+		arg.StMakepoint,
+		arg.StMakepoint_2,
 	)
 	return err
 }
@@ -102,8 +122,8 @@ func (q *Queries) DeleteProfile(ctx context.Context, id pgtype.UUID) error {
 
 const getProfile = `-- name: GetProfile :one
 SELECT id, username, name, surname, email, description,
-    ST_X(location::GEOGRAPHY) AS longitude,
-    ST_Y(location::GEOGRAPHY) AS latitude
+    ST_X(location::GEOMETRY) AS longitude,
+    ST_Y(location::GEOMETRY) AS latitude
 FROM profiles WHERE id = $1
 `
 

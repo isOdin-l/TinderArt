@@ -49,9 +49,9 @@ func main() {
 	defer grpc_client.Conn.Close()
 
 	// Layers
-	repository := repository.NewRepository(DB)                                           // Repository
-	service := service.NewService(repository, storage, grpc_client, &cfg.InternalConfig) // Service
-	handler := handler.NewHandler(service)                                               // Handler
+	repository := repository.NewRepository(DB)                                // Repository
+	service := service.NewService(repository, storage, grpc_client, &cfg, DB) // Service
+	handler := handler.NewHandler(service)                                    // Handler
 
 	// Custom middleware with grpc call
 	md := middleware.NewMiddleware(grpc_client)

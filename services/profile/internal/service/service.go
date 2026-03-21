@@ -16,10 +16,20 @@ type ICache interface {
 }
 
 type IRepository interface {
+	// Profile
 	CreateProfile(ctx context.Context, profile *entities.Profile) error
 	GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error)
 	UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error)
 	DeleteProfile(ctx context.Context, userId uuid.UUID) error
+
+	// Preference
+	CreatePreferences(ctx context.Context, profile *entities.Profile) error
+
+	// Photos
+	CreatePhotos(ctx context.Context, profile *entities.Profile) error
+
+	// FavArtStyles
+	CreateFavArtStyle(ctx context.Context, profile *entities.Profile) error
 }
 
 type IStorage interface {
@@ -27,52 +37,106 @@ type IStorage interface {
 	GetObject(ctx context.Context, bucket, key *string) ([]byte, error)
 }
 
+type ITxManagaer interface {
+	WithTx(ctx context.Context, fn func(ctx context.Context) (any, error)) (any, error)
+}
+
 type Service struct {
 	repo        IRepository
 	storage     IStorage
 	grpc_client grpc_auth.AuthServiceClient
-	cfg         *config.InternalConfig
+	cfg         *config.Config
+	txMng       ITxManagaer
 }
 
-func NewService(repo IRepository, storage IStorage, grpc_client grpc_auth.AuthServiceClient, cfg *config.InternalConfig) *Service {
+func NewService(repo IRepository, storage IStorage, grpc_client grpc_auth.AuthServiceClient, cfg *config.Config, txMng ITxManagaer) *Service {
 	return &Service{
 		repo:        repo,
 		storage:     storage,
 		grpc_client: grpc_client,
 		cfg:         cfg,
+		txMng:       txMng,
 	}
 }
 
 func (s *Service) CreateProfile(ctx context.Context, profile *entities.Profile) error {
 	// Password hashing
-	var errHash error
-	profile.Password, errHash = s.genPasswordHash(profile.Password)
-	if errHash != nil {
-		return errHash
-	}
-
-	//Call database to create profile
-	errDb := s.repo.CreateProfile(ctx, profile)
-	if errDb != nil {
-		return errDb
+	var errPrep error
+	profile.Password, errPrep = s.genPasswordHash(profile.Password)
+	if errPrep != nil {
+		return errPrep
 	}
 
 	// Create new userID
-	userId, errUid := uuid.NewV7()
-	if errUid != nil {
-		return errUid
+	profile.UserId, errPrep = uuid.NewV7()
+	if errPrep != nil {
+		return errPrep
+	}
+
+	// Create uuid for favart
+	for idx := range len(profile.FavArtStyles) {
+		profile.FavArtStylesIds[idx], errPrep = uuid.NewV7()
+		if errPrep != nil {
+			return errPrep
+		}
+	}
+
+	// Create photos data
+	for idx := range len(profile.PhotoFiles) {
+		profile.PhotosIds[idx], errPrep = uuid.NewV7()
+		if errPrep != nil {
+			return errPrep
+		}
+
+		profile.PhotoUrls[idx] = s.cfg.ConfigRustFS.ObjPath(profile.PhotosIds[idx].String())
+	}
+
+	_, errTx := s.txMng.WithTx(ctx, func(ctx context.Context) (any, error) {
+		//Call database to insert data into profile, preferences, photos, fav_art_styles
+		if errCreate := s.repo.CreateProfile(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+		if errCreate := s.repo.CreatePreferences(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+		if errCreate := s.repo.CreatePhotos(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+		if errCreate := s.repo.CreateFavArtStyle(ctx, profile); errCreate != nil {
+			return nil, errCreate
+		}
+
+		// Put photos to s3
+		var filename string
+		for idx, fileHeader := range profile.PhotoFiles {
+			file, errOpen := fileHeader.Open()
+			if errOpen != nil {
+				return nil, errOpen
+			}
+			defer file.Close()
+
+			filename = profile.PhotosIds[idx].String()
+
+			if errPut := s.storage.PutObject(ctx, &s.cfg.RustFSBucketName, &filename, file); errPut != nil {
+				return nil, errPut
+			}
+		}
+
+		return nil, nil
+	})
+	if errTx != nil {
+		return errTx
 	}
 
 	// Call Auth by gRPC to sign refresh and access tokens
 	result, errCall := s.grpc_client.CreateUser(ctx, &grpc_auth.CreateUserRequest{
-		UserId: userId.String(),
+		UserId: profile.UserId.String(),
 	})
 	if errCall != nil {
 		return errCall
 	}
 
 	// Updating entity fields
-	profile.UserId = userId
 	profile.AccessToken = result.AccessToken
 	profile.RefreshToken = result.RefreshToken
 
@@ -95,7 +159,7 @@ func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdatePro
 func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
 	profile, errGet := s.repo.GetProfile(ctx, userId)
 	if errGet != nil {
-		return nil
+		return errGet
 	}
 
 	// + удалять фото из s3

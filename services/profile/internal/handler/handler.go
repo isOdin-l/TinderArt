@@ -36,7 +36,7 @@ func (h *Handler) CreateProfile(c *echo.Context) error {
 
 	errService := h.service.CreateProfile(c.Request().Context(), entity)
 	if errService != nil {
-		return c.JSON(http.StatusInternalServerError, "Internal server error")
+		return c.JSON(http.StatusInternalServerError, errService.Error())
 	}
 
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPICreateProfile(entity))

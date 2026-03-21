@@ -13,7 +13,7 @@ services:
     container_name: auth-service
     ports:
       - "8000:8000" # HTTP port - delete after dev
-      - "9000:9000" # gRPC port - delete after dev
+      - "7000:7000" # gRPC port - delete after dev
     env_file:
       - ./configs/services/auth.env
     networks:
@@ -49,7 +49,7 @@ services:
       cache:
         condition: service_healthy
   profile-service:
-    image: profile-service:dev-0.2
+    image: profile-service:dev-0.4
     container_name: profile-service
     ports:
       - "8002:8002" # HTTP port - delete after dev

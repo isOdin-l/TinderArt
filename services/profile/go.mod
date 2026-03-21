@@ -16,7 +16,6 @@ replace github.com/isOdin-l/TinderArt/pkg/postgres => ../../pkg/postgres
 
 require (
 	github.com/caarlos0/env/v11 v11.4.0
-	github.com/cridenour/go-postgis v1.0.1
 	github.com/google/uuid v1.6.0
 	github.com/isOdin-l/TinderArt/pkg/configs v0.0.0-00010101000000-000000000000
 	github.com/isOdin-l/TinderArt/pkg/db_models v0.0.0-00010101000000-000000000000
@@ -42,6 +41,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.20 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.97.1 // indirect
 	github.com/aws/smithy-go v1.24.2 // indirect
+	github.com/cridenour/go-postgis v1.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect

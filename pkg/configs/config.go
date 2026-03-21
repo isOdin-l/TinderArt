@@ -62,5 +62,16 @@ type ConfigRustFS struct {
 	RustFSRegion            string `env:"RUSTFS_REGION"`
 	RustFSAccess_key        string `env:"RUSTFS_ACCESS_KEY_ID"`
 	RustFSSecret_access_key string `env:"RUSTFS_SECRET_ACCESS_KEY"`
-	RustFSEndpoint          string `env:"RUSTFS_ENDPOINT_URL"`
+	RustFSBucketName        string `env:"RUSTFS_BUCKET"`
+	RustFSUrl               string `env:"RUSTFS_URL"`
+	RustFSPort              string `env:"RUSTFS_PORT"`
+}
+
+func (c *ConfigRustFS) DSN() string {
+	return fmt.Sprintf("%s:%s", c.RustFSUrl, c.RustFSPort)
+}
+
+func (c *ConfigRustFS) ObjPath(objName string) string {
+	endpoint := c.DSN()
+	return fmt.Sprintf("%s/%s/%s", endpoint, c.RustFSBucketName, objName)
 }

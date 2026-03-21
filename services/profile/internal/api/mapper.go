@@ -38,14 +38,20 @@ func FromEntityToAPIGetProfile(entity *entities.Profile) *api.ResponseProfile {
 
 func FromAPICreateProfileToEntity(req *api.RequestCreateaProfile) *entities.Profile {
 	return &entities.Profile{
-		Username:    req.Username,
-		Name:        req.Name,
-		Surname:     req.Surname,
-		Email:       req.Email,
-		Password:    req.Email,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
+		Username:                 req.Username,
+		Name:                     req.Name,
+		Surname:                  req.Surname,
+		Email:                    req.Email,
+		Password:                 req.Password,
+		Description:              req.Description,
+		Latitude:                 req.Latitude,
+		Longitude:                req.Longitude,
+		PreferencesMaxDistMeters: req.PreferencesMaxDistMeters,
+		FavArtStyles:             req.FavArtStyles,
+		FavArtStylesIds:          make([]uuid.UUID, len(req.FavArtStyles)),
+		PhotoFiles:               req.Photos,
+		PhotoUrls:                make([]string, len(req.Photos)),
+		PhotosIds:                make([]uuid.UUID, len(req.Photos)),
 	}
 
 }
