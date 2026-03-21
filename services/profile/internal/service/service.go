@@ -18,6 +18,7 @@ type ICache interface {
 	Set(ctx context.Context, key string, value any, timeExpire time.Duration) error
 	Get(ctx context.Context, key string) (string, error)
 	LRange(ctx context.Context, key string, start, end int64) ([]any, error)
+	Del(ctx context.Context, keys ...string) error
 }
 
 type IRepository interface {
@@ -181,14 +182,20 @@ func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdatePro
 	return s.repo.UpdateProfile(ctx, profile)
 }
 func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
-	profile, errGet := s.repo.GetProfile(ctx, userId)
-	if errGet != nil {
-		return errGet
+	// profile, errGet := s.repo.GetProfile(ctx, userId) // TODO: get also urls
+	// if errGet != nil {
+	// 	return errGet
+	// }
+
+	stack_key := fmt.Sprintf("stack:%s", userId)
+	profile_key := fmt.Sprintf("profile:%s", userId)
+
+	if errCache := s.cache.Del(ctx, stack_key, profile_key); errCache != nil {
+		return errCache
 	}
+	// TODO: удалять фото из s3
 
-	// + удалять фото из s3
-
-	return s.repo.DeleteProfile(ctx, profile.UserId)
+	return s.repo.DeleteProfile(ctx, userId)
 }
 
 func (s *Service) genPasswordHash(password string) (string, error) {

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -73,8 +74,10 @@ func (h *Handler) UpdateProfile(c *echo.Context) error {
 func (h *Handler) DeleteProfile(c *echo.Context) error {
 	// Get from context userId
 	userId := c.Get("user_id").(uuid.UUID)
-
-	h.service.DeleteProfile(c.Request().Context(), userId)
+	slog.Info(userId.String())
+	if errServ := h.service.DeleteProfile(c.Request().Context(), userId); errServ != nil {
+		return c.JSON(http.StatusInternalServerError, errServ.Error())
+	}
 
 	return c.NoContent(http.StatusOK)
 }

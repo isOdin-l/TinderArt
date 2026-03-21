@@ -50,3 +50,7 @@ func (cache *Redis) RPush(ctx context.Context, key string, args ...any) error {
 func (cache *Redis) Eval(ctx context.Context, script string, keys []string, args ...any) error {
 	return cache.Client.Eval(ctx, script, keys, args...).Err()
 }
+
+func (cache *Redis) Del(ctx context.Context, keys ...string) error {
+	return cache.Client.Del(ctx, keys...).Err()
+}
