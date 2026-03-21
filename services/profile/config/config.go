@@ -9,6 +9,7 @@ type Config struct {
 	configs.ConfigRustFS
 	configs.ConfigPostgres
 	configs.ConfigGrpcClient
+	configs.ConfigRedis
 	InternalConfig
 	ServerConfig
 }

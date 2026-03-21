@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc/auth"
@@ -12,6 +15,8 @@ import (
 )
 
 type ICache interface {
+	Set(ctx context.Context, key string, value any, timeExpire time.Duration) error
+	Get(ctx context.Context, key string) (string, error)
 	LRange(ctx context.Context, key string, start, end int64) ([]any, error)
 }
 
@@ -47,15 +52,17 @@ type Service struct {
 	grpc_client grpc_auth.AuthServiceClient
 	cfg         *config.Config
 	txMng       ITxManagaer
+	cache       ICache
 }
 
-func NewService(repo IRepository, storage IStorage, grpc_client grpc_auth.AuthServiceClient, cfg *config.Config, txMng ITxManagaer) *Service {
+func NewService(cfg *config.Config, repo IRepository, storage IStorage, grpc_client grpc_auth.AuthServiceClient, txMng ITxManagaer, cache ICache) *Service {
 	return &Service{
 		repo:        repo,
 		storage:     storage,
 		grpc_client: grpc_client,
 		cfg:         cfg,
 		txMng:       txMng,
+		cache:       cache,
 	}
 }
 
@@ -143,7 +150,24 @@ func (s *Service) CreateProfile(ctx context.Context, profile *entities.Profile) 
 	return nil
 }
 func (s *Service) GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error) {
-	return s.repo.GetProfile(ctx, userId)
+	cacheKey := fmt.Sprintf("profile:%s", userId.String())
+
+	// Try to get user from redis
+	userCache, errSearch := s.cache.Get(ctx, cacheKey)
+	if errSearch == nil {
+		var user entities.Profile
+		return &user, json.Unmarshal([]byte(userCache), &user)
+	}
+
+	// Get user from DB
+	userDb, errDb := s.repo.GetProfile(ctx, userId)
+	if errDb != nil {
+		return nil, errDb
+	}
+	data, _ := json.Marshal(userDb)
+
+	// Set user to cache and return data from DB
+	return userDb, s.cache.Set(ctx, cacheKey, data, 1*time.Hour)
 }
 func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error) {
 	if profile.Password != nil {

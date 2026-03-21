@@ -10,6 +10,7 @@ import (
 	grpc_auth "github.com/isOdin-l/TinderArt/pkg/grpc"
 	"github.com/isOdin-l/TinderArt/pkg/middleware"
 	"github.com/isOdin-l/TinderArt/pkg/postgres"
+	"github.com/isOdin-l/TinderArt/pkg/redis"
 	"github.com/isOdin-l/TinderArt/pkg/s3"
 	"github.com/isOdin-l/TinderArt/services/profile/config"
 	"github.com/isOdin-l/TinderArt/services/profile/internal/handler"
@@ -48,10 +49,14 @@ func main() {
 	}
 	defer grpc_client.Conn.Close()
 
+	// Redis
+	redis := redis.NewRedis(&cfg.ConfigRedis)
+	defer redis.Client.Close()
+
 	// Layers
-	repository := repository.NewRepository(DB)                                // Repository
-	service := service.NewService(repository, storage, grpc_client, &cfg, DB) // Service
-	handler := handler.NewHandler(service)                                    // Handler
+	repository := repository.NewRepository(DB)                                       // Repository
+	service := service.NewService(&cfg, repository, storage, grpc_client, DB, redis) // Service
+	handler := handler.NewHandler(service)                                           // Handler
 
 	// Custom middleware with grpc call
 	md := middleware.NewMiddleware(grpc_client)
