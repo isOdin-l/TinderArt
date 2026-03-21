@@ -21,11 +21,11 @@ func NewRepository(db db_models.DBTX) *Repository {
 
 func (r *Repository) CreateUpdateSwipe(ctx context.Context, swipe *entities.Swipe) error {
 	insertModel := db_models.InsertUpdateSwipeParams{
-		ID:        ToPgUUID(&swipe.Id),
-		UserID1:   ToPgUUID(&swipe.UserId),
-		UserID2:   ToPgUUID(&swipe.TargetId),
-		Desicion1: ToPgBollNullable(swipe.Decision1),
-		Desicion2: ToPgBollNullable(swipe.Decision2),
+		ID:        db_models.ToPgUUID(&swipe.Id),
+		UserID1:   db_models.ToPgUUID(&swipe.UserId),
+		UserID2:   db_models.ToPgUUID(&swipe.TargetId),
+		Desicion1: db_models.ToPgBoll(swipe.Decision1),
+		Desicion2: db_models.ToPgBoll(swipe.Decision2),
 	}
 
 	res, errDB := r.q.InsertUpdateSwipe(ctx, insertModel)
@@ -33,8 +33,8 @@ func (r *Repository) CreateUpdateSwipe(ctx context.Context, swipe *entities.Swip
 		return errDB
 	}
 
-	swipe.Decision1 = ToPgUUIDNullable(&res.Desicion1)
-	swipe.Decision2 = ToPgUUIDNullable(&res.Desicion2)
+	swipe.Decision1 = db_models.FromPgBool(res.Desicion1)
+	swipe.Decision2 = db_models.FromPgBool(res.Desicion2)
 
 	return nil
 }

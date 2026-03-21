@@ -38,3 +38,20 @@ func ToPgText(v *string) pgtype.Text {
 func FromPgText(v *pgtype.Text) string {
 	return v.String
 }
+
+func ToPgBoll(v *bool) pgtype.Bool {
+	if v == nil {
+		return pgtype.Bool{
+			Bool:  false,
+			Valid: false,
+		}
+	}
+
+	return pgtype.Bool{
+		Bool:  *v,
+		Valid: true,
+	}
+}
+func FromPgBool(v pgtype.Bool) *bool {
+	return &v.Bool
+}
