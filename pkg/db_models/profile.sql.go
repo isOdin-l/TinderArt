@@ -121,21 +121,41 @@ func (q *Queries) DeleteProfile(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getProfile = `-- name: GetProfile :one
-SELECT id, username, name, surname, email, description,
-    ST_X(location::GEOMETRY) AS longitude,
-    ST_Y(location::GEOMETRY) AS latitude
-FROM profiles WHERE id = $1
+SELECT
+    p.id, p.username, p.name, p.surname, p.email, p.description,
+    ST_X(p.location::GEOMETRY) AS longitude,
+    ST_Y(p.location::GEOMETRY) AS latitude,
+    COALESCE(ph.photos, '[]') AS photos,
+    COALESCE(fav.fav_art_styles, '[]') AS fav_art_styles
+FROM profiles p
+LEFT JOIN
+(
+    SELECT profile_id, json_agg(jsonb_build_object('id', id, 'url', url)) AS photos
+    FROM photos
+    GROUP BY profile_id
+)
+ph ON ph.profile_id = p.id
+LEFT JOIN
+(
+    SELECT profile_id, json_agg(style) AS fav_art_styles
+    FROM fav_art_styles
+    GROUP BY profile_id
+)
+fav ON fav.profile_id = p.id
+WHERE p.id = $1
 `
 
 type GetProfileRow struct {
-	ID          pgtype.UUID
-	Username    pgtype.Text
-	Name        pgtype.Text
-	Surname     pgtype.Text
-	Email       pgtype.Text
-	Description pgtype.Text
-	Longitude   interface{}
-	Latitude    interface{}
+	ID           pgtype.UUID
+	Username     pgtype.Text
+	Name         pgtype.Text
+	Surname      pgtype.Text
+	Email        pgtype.Text
+	Description  pgtype.Text
+	Longitude    interface{}
+	Latitude     interface{}
+	Photos       []byte
+	FavArtStyles []byte
 }
 
 func (q *Queries) GetProfile(ctx context.Context, id pgtype.UUID) (GetProfileRow, error) {
@@ -150,6 +170,8 @@ func (q *Queries) GetProfile(ctx context.Context, id pgtype.UUID) (GetProfileRow
 		&i.Description,
 		&i.Longitude,
 		&i.Latitude,
+		&i.Photos,
+		&i.FavArtStyles,
 	)
 	return i, err
 }
@@ -162,7 +184,7 @@ WHERE profile_id = $1 RETURNING profile_id, max_distance_meters
 
 type UpdatePreferencesParams struct {
 	ProfileID         pgtype.UUID
-	MaxDistanceMeters int32
+	MaxDistanceMeters pgtype.Int4
 }
 
 func (q *Queries) UpdatePreferences(ctx context.Context, arg UpdatePreferencesParams) (Preference, error) {

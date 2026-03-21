@@ -61,6 +61,9 @@ func (h *Handler) UpdateProfile(c *echo.Context) error {
 	if errBind := c.Bind(&req); errBind != nil {
 		return c.JSON(http.StatusBadRequest, "invalid data")
 	}
+
+	// Move from api model to entity and
+	// get userId from context
 	entity := mapper.FromAPIUpdateProfileToEntity(&req)
 	entity.UserId = c.Get("user_id").(uuid.UUID)
 

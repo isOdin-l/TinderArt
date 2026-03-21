@@ -3,10 +3,28 @@ INSERT INTO profiles (id, username, name, surname, email, password, description,
 VALUES($1, $2, $3, $4, $5, $6, $7, ST_SetSRID(ST_MakePoint($8, $9), 4326));
 
 -- name: GetProfile :one
-SELECT id, username, name, surname, email, description,
-    ST_X(location::GEOMETRY) AS longitude,
-    ST_Y(location::GEOMETRY) AS latitude
-FROM profiles WHERE id = $1;
+SELECT
+    p.id, p.username, p.name, p.surname, p.email, p.description,
+    ST_X(p.location::GEOMETRY) AS longitude,
+    ST_Y(p.location::GEOMETRY) AS latitude,
+    COALESCE(ph.photos, '[]') AS photos,
+    COALESCE(fav.fav_art_styles, '[]') AS fav_art_styles
+FROM profiles p
+LEFT JOIN
+(
+    SELECT profile_id, json_agg(jsonb_build_object('id', id, 'url', url)) AS photos
+    FROM photos
+    GROUP BY profile_id
+)
+ph ON ph.profile_id = p.id
+LEFT JOIN
+(
+    SELECT profile_id, json_agg(style) AS fav_art_styles
+    FROM fav_art_styles
+    GROUP BY profile_id
+)
+fav ON fav.profile_id = p.id
+WHERE p.id = $1;
 
 -- name: UpdateProfile :one
 UPDATE profiles
@@ -31,7 +49,7 @@ VALUES ($1, $2);
 
 -- name: UpdatePreferences :one
 UPDATE preferences
-SET max_distance_meters = COALESCE($2, max_distance_meters)
+SET max_distance_meters = COALESCE(sqlc.narg(max_distance_meters), max_distance_meters)
 WHERE profile_id = $1 RETURNING profile_id, max_distance_meters;
 
 -- name: CreateFavArtStyle :exec

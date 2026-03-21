@@ -49,7 +49,7 @@ services:
       cache:
         condition: service_healthy
   profile-service:
-    image: profile-service:dev-0.5
+    image: profile-service:dev-0.7
     container_name: profile-service
     ports:
       - "8002:8002" # HTTP port - delete after dev

@@ -36,12 +36,13 @@ type UpdateProfile struct {
 	UserId uuid.UUID
 
 	// Optional fields
-	Username    *string
-	Name        *string
-	Surname     *string
-	Email       *string
-	Password    *string
-	Description *string
-	Latitude    *float64
-	Longitude   *float64
+	Username                 *string
+	Name                     *string
+	Surname                  *string
+	Email                    *string
+	Password                 *string
+	Description              *string
+	Latitude                 *float64
+	Longitude                *float64
+	PreferencesMaxDistMeters *int
 }

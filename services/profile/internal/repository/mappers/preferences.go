@@ -21,6 +21,9 @@ func FromEntityToCreatePrefParams(entity *entities.Profile) *db_models.CreatePre
 	}
 }
 
-func FromEntityToUpdatePref(entity *entities.Profile) *db_models.UpdatePreferencesParams {
-	return &db_models.UpdatePreferencesParams{}
+func FromEntityToUpdatePref(entity *entities.UpdateProfile) *db_models.UpdatePreferencesParams {
+	return &db_models.UpdatePreferencesParams{
+		ProfileID:         db_models.ToPgUUID(&entity.UserId),
+		MaxDistanceMeters: db_models.ToPgInt4(entity.PreferencesMaxDistMeters),
+	}
 }

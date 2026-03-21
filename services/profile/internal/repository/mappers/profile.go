@@ -1,6 +1,8 @@
 package mappers
 
 import (
+	"encoding/json"
+
 	"github.com/isOdin-l/TinderArt/pkg/db_models"
 	"github.com/isOdin-l/TinderArt/services/profile/internal/entities"
 )
@@ -8,15 +10,22 @@ import (
 // DB ---> ENTITY
 
 func FromGetProfileToEntity(db *db_models.GetProfileRow) *entities.Profile {
+	var dbPhotos, dbStyles []string
+
+	json.Unmarshal(db.Photos, &dbPhotos)
+	json.Unmarshal(db.FavArtStyles, &dbStyles)
+
 	return &entities.Profile{
-		UserId:      db_models.FromPgUUID(&db.ID),
-		Username:    db_models.FromPgText(&db.Username),
-		Surname:     db_models.FromPgText(&db.Surname),
-		Name:        db_models.FromPgText(&db.Name),
-		Email:       db_models.FromPgText(&db.Email),
-		Description: db_models.FromPgText(&db.Description),
-		Latitude:    db.Latitude.(float64),
-		Longitude:   db.Longitude.(float64),
+		UserId:       db_models.FromPgUUID(&db.ID),
+		Username:     db_models.FromPgText(&db.Username),
+		Surname:      db_models.FromPgText(&db.Surname),
+		Name:         db_models.FromPgText(&db.Name),
+		Email:        db_models.FromPgText(&db.Email),
+		Description:  db_models.FromPgText(&db.Description),
+		Latitude:     db.Latitude.(float64),
+		Longitude:    db.Longitude.(float64),
+		PhotoUrls:    dbPhotos,
+		FavArtStyles: dbStyles,
 	}
 }
 

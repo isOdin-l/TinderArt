@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/isOdin-l/TinderArt/pkg/db_models"
@@ -47,6 +49,7 @@ func (repo *Repository) GetProfile(ctx context.Context, userId uuid.UUID) (*enti
 	if errDb != nil {
 		return nil, errDb
 	}
+	slog.Info(fmt.Sprintf("%s %s", row.Photos, row.FavArtStyles))
 	return mappers.FromGetProfileToEntity(&row), nil
 }
 
@@ -67,13 +70,13 @@ func (repo *Repository) CreatePreferences(ctx context.Context, profile *entities
 	return repo.query.CreatePreferences(ctx, *mappers.FromEntityToCreatePrefParams(profile))
 }
 
-// func (repo *Repository) UpdatePreferences(ctx context.Context, profile *entities.Profile) (*entities.Profile, error) {
-// 	db, errDb := repo.query.UpdatePreferences(ctx, *FromEntityToUpdatePref(profile))
-// 	if errDb != nil {
-// 		return nil, errDb
-// 	}
-// 	return FromPreferenceToEntity(&db), nil
-// }
+func (repo *Repository) UpdatePreferences(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error) {
+	db, errDb := repo.query.UpdatePreferences(ctx, *mappers.FromEntityToUpdatePref(profile))
+	if errDb != nil {
+		return nil, errDb
+	}
+	return mappers.FromPreferenceToEntity(&db), nil
+}
 
 // Favourite art styles
 func (repo *Repository) CreateFavArtStyle(ctx context.Context, profile *entities.Profile) error {

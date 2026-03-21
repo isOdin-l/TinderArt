@@ -26,26 +26,29 @@ type RequestGetProfile struct {
 }
 
 type RequestUpdateProfile struct {
-	Username    *string  `json:"username"`
-	Name        *string  `json:"name"`
-	Surname     *string  `json:"surname"`
-	Email       *string  `json:"email"`
-	Password    *string  `json:"password"`
-	Description *string  `json:"description"`
-	Latitude    *float64 `json:"latitude"`
-	Longitude   *float64 `json:"longitude"`
+	Username                 *string  `json:"username"`
+	Name                     *string  `json:"name"`
+	Surname                  *string  `json:"surname"`
+	Email                    *string  `json:"email"`
+	Password                 *string  `json:"password"`
+	Description              *string  `json:"description"`
+	Latitude                 *float64 `json:"latitude"`
+	Longitude                *float64 `json:"longitude"`
+	PreferencesMaxDistMeters *int     `form:"max_dist_meters"`
 }
 
 // Response
 type ResponseProfile struct {
-	Username    string  `json:"username"`
-	Name        string  `json:"name"`
-	Surname     string  `json:"surname"`
-	Email       string  `json:"email"`
-	Password    string  `json:"password"`
-	Description string  `json:"description"`
-	Latitude    float64 `json:"latitude"`
-	Longitude   float64 `json:"longitude"`
+	Username     string   `json:"username"`
+	Name         string   `json:"name"`
+	Surname      string   `json:"surname"`
+	Email        string   `json:"email"`
+	Password     string   `json:"password"`
+	Description  string   `json:"description"`
+	Latitude     float64  `json:"latitude"`
+	Longitude    float64  `json:"longitude"`
+	PhotoUrls    []string `json:"photos"`
+	FavArtStyles []string `json:"favourite_art_style"`
 }
 
 type ResponseCreateProfile struct {

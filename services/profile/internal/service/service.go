@@ -30,6 +30,7 @@ type IRepository interface {
 
 	// Preference
 	CreatePreferences(ctx context.Context, profile *entities.Profile) error
+	UpdatePreferences(ctx context.Context, profile *entities.UpdateProfile) (*entities.Profile, error)
 
 	// Photos
 	CreatePhotos(ctx context.Context, profile *entities.Profile) error
@@ -179,7 +180,30 @@ func (s *Service) UpdateProfile(ctx context.Context, profile *entities.UpdatePro
 		profile.Password = &tmpPass
 	}
 
-	return s.repo.UpdateProfile(ctx, profile)
+	res, errTx := s.txMng.WithTx(ctx, func(ctx context.Context) (any, error) {
+		_, errUpdate := s.repo.UpdateProfile(ctx, profile)
+		if errUpdate != nil {
+			return nil, errUpdate
+		}
+
+		_, errUpdate = s.repo.UpdatePreferences(ctx, profile)
+		if errUpdate != nil {
+			return nil, errUpdate
+		}
+
+		return s.repo.GetProfile(ctx, profile.UserId)
+	})
+	if errTx != nil {
+		return nil, errTx
+	}
+
+	resDb := res.(*entities.Profile)
+
+	// Prepare data for writing to redis
+	profileKey := fmt.Sprintf("profile:%s", profile.UserId.String())
+	data, _ := json.Marshal(resDb)
+
+	return resDb, s.cache.Set(ctx, profileKey, data, 1*time.Hour)
 }
 func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
 	// profile, errGet := s.repo.GetProfile(ctx, userId) // TODO: get also urls
@@ -194,7 +218,6 @@ func (s *Service) DeleteProfile(ctx context.Context, userId uuid.UUID) error {
 		return errCache
 	}
 	// TODO: удалять фото из s3
-
 	return s.repo.DeleteProfile(ctx, userId)
 }
 

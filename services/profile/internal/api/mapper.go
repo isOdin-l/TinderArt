@@ -12,27 +12,30 @@ func FromAPIGetProfileToEntity(req *api.RequestGetProfile) uuid.UUID {
 
 func FromAPIUpdateProfileToEntity(req *api.RequestUpdateProfile) *entities.UpdateProfile {
 	return &entities.UpdateProfile{
-		Username:    req.Username,
-		Name:        req.Name,
-		Surname:     req.Surname,
-		Email:       req.Email,
-		Password:    req.Password,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
+		Username:                 req.Username,
+		Name:                     req.Name,
+		Surname:                  req.Surname,
+		Email:                    req.Email,
+		Password:                 req.Password,
+		Description:              req.Description,
+		Latitude:                 req.Latitude,
+		Longitude:                req.Longitude,
+		PreferencesMaxDistMeters: req.PreferencesMaxDistMeters,
 	}
 }
 
 func FromEntityToAPIGetProfile(entity *entities.Profile) *api.ResponseProfile {
 	return &api.ResponseProfile{
-		Username:    entity.Username,
-		Name:        entity.Name,
-		Surname:     entity.Surname,
-		Email:       entity.Email,
-		Password:    entity.Password,
-		Description: entity.Description,
-		Latitude:    entity.Latitude,
-		Longitude:   entity.Longitude,
+		Username:     entity.Username,
+		Name:         entity.Name,
+		Surname:      entity.Surname,
+		Email:        entity.Email,
+		Password:     entity.Password,
+		Description:  entity.Description,
+		Latitude:     entity.Latitude,
+		Longitude:    entity.Longitude,
+		PhotoUrls:    entity.PhotoUrls,
+		FavArtStyles: entity.FavArtStyles,
 	}
 }
 
