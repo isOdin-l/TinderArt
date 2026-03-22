@@ -1,0 +1,40 @@
+services:
+  db_profiles:
+    image: postgis/postgis:18-3.6-alpine
+    container_name: db_profiles
+    restart: always
+
+    secrets:
+      - db_profile_user
+      - db_profile_password
+      - db_profile_db
+
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/db_profile_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_profile_password
+      POSTGRES_DB_FILE: /run/secrets/db_profile_db
+
+    volumes:
+      - ../../data/ps_db_profiles:/var/lib/postgresql
+
+    networks:
+      - tindart
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $(cat /run/secrets/db_profile_user) -d $(cat /run/secrets/db_profile_db)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+secrets:
+  db_profile_user:
+    file: ../secrets/db_profiles/user
+  db_profile_password:
+    file: ../secrets/db_profiles/password
+  db_profile_db:
+    file: ../secrets/db_profiles/db

@@ -1,0 +1,77 @@
+include:
+  - path: ./infra/rustfs/rustfs.yml
+  - path: ./infra/db_swipes/db_swipes.yml
+  - path: ./infra/db_profiles/db_profiles.yml
+  - path: ./infra/redis/redis.yml
+  - path: ./infra/kafka/kafka.yml
+  - path: ./infra/goose-migration/goose.yml
+  - path: ./infra/nginx/nginx.yml
+
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./services/auth/Dockerfile
+    image: auth-service:prod
+    container_name: auth-service
+    env_file:
+      - ./services/auth/auth.env
+    networks:
+      - tindart
+    depends_on:
+      db_profiles:
+        condition: service_healthy
+
+  swipe-service:
+    build:
+      context: .
+      dockerfile: ./services/swipe/Dockerfile
+    image: swipe-service:prod
+    container_name: swipe-service
+    env_file:
+      - ./services/swipe/swipe.env
+    networks:
+      - tindart
+    depends_on:
+      db_swipes:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  stack-service:
+    build:
+      context: .
+      dockerfile: ./services/stack/Dockerfile
+    image: stack-service:prod
+    container_name: stack-service
+    env_file:
+      - ./services/stack/stack.env
+    networks:
+      - tindart
+    depends_on:
+      db_profiles:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+
+  profile-service:
+    build:
+      context: .
+      dockerfile: ./services/profile/Dockerfile
+    image: profile-service:prod
+    container_name: profile-service
+    env_file:
+      - ./services/profile/profile.env
+    networks:
+      - tindart
+    depends_on:
+      db_profiles:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      # s3:
+      #   condition: service_healthy
+
+networks:
+  tindart:
+    driver: bridge

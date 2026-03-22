@@ -1,0 +1,39 @@
+services:
+  db_swipes:
+    image: postgres:18.3-trixie
+    container_name: db_swipes
+    restart: always
+
+    secrets:
+      - db_swipes_user
+      - db_swipes_password
+      - db_swipes_db
+
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/db_swipes_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_swipes_password
+      POSTGRES_DB_FILE: /run/secrets/db_swipes_db
+
+    volumes:
+      #- ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/000001_init.up.sql
+      - ../../data/ps_db_swipes:/var/lib/postgresql
+    networks:
+      - tindart
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $(cat /run/secrets/db_swipes_user) -d $(cat /run/secrets/db_swipes_db)",
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+
+secrets:
+  db_swipes_user:
+    file: ../secrets/db_swipes/user
+  db_swipes_password:
+    file: ../secrets/db_swipes/password
+  db_swipes_db:
+    file: ../secrets/db_swipes/db

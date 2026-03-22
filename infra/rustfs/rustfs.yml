@@ -1,0 +1,41 @@
+services:
+  s3:
+    build:
+      context: .
+    image: rustfs/rustfs:latest
+    container_name: s3
+    ports:
+      - "9001:9001"
+
+    env_file:
+      - "./rustfs.env"
+
+    volumes:
+      # - ../configs/rustfs.toml:/etc/rustfs/config.toml
+      - ../../data/s3:/data
+    networks:
+      - tindart
+
+  bucket-init:
+    image: minio/mc:latest
+    container_name: bucket-init
+    volumes:
+      - ./create-bucket.sh/:/create-bucket.sh
+    depends_on:
+      - s3
+    networks:
+      - tindart
+    secrets:
+      - rustfs_access_key
+      - rustfs_secret_key
+    entrypoint: ["sh", "/create-bucket.sh"]
+
+secrets:
+  rustfs_access_key:
+    file: ../secrets/rustfs/access_key
+  rustfs_secret_key:
+    file: ../secrets/rustfs/secret_key
+  # rustfs_region:
+  #   file: ../secrets/rustfs/region
+  # rustfs_console_enable:
+  #   file: ../secrets/rustfs/console_enable

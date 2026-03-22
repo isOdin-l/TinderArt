@@ -1,8 +1,0 @@
-include:
-  - path: ./compose_files/s3.yml 
-  - path: ./compose_files/db_swipes.yml
-  - path: ./compose_files/db_profiles.yml
-  # - path: ./compose_files/nginx.yml
-  - path: ./compose_files/cache_db.yml
-
-  - path: ./compose_files/msg_broker.yml

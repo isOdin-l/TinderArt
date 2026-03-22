@@ -1,0 +1,14 @@
+services:
+  nginx:
+    image: nginx:1.29.6-trixie
+    container_name: api-gateway
+    restart: always
+
+    ports:
+      - "80:80"
+
+    networks:
+      - tindart
+
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro

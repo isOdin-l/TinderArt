@@ -1,0 +1,31 @@
+services:
+  kafka:
+    image: apache/kafka:4.0.2-rc3
+    container_name: kafka
+    env_file:
+      - ./kafka.env
+    volumes:
+      - ../../data/kafka:/var/lib/kafka/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list || exit 1",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - tindart
+
+  kafka-init:
+    image: apache/kafka:4.0.2-rc3
+    container_name: kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./create-topics.sh:/create-topics.sh
+    entrypoint: ["/bin/bash", "/create-topics.sh"]
+    networks:
+      - tindart

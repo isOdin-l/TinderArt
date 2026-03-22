@@ -1,0 +1,29 @@
+version: "2"
+sql:
+  - schema: "schema.sql"
+    queries: "queries/"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "db_models"
+        out: "../"
+        sql_package: "pgx/v5"
+        emit_interface: false
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        overrides:
+          - db_type: "geography"
+            go_type: "github.com/cridenour/go-postgis.Point"
+
+          - db_type: "text"
+            go_type:
+              import: "github.com/jackc/pgx/v5/pgtype"
+              type: "Text"
+          - db_type: "bool"
+            go_type:
+              import: "github.com/jackc/pgx/v5/pgtype"
+              type: "Bool"
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/jackc/pgx/v5/pgtype"
+              type: "UUID"

@@ -1,0 +1,32 @@
+services:
+  cache:
+    image: redis:8.6.1-trixie
+    container_name: cache
+    restart: always
+
+    secrets:
+      - redis_password
+
+    networks:
+      - tindart
+
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ../../data/redis:/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "redis-cli -a $(cat /run/secrets/redis_password) ping | grep PONG",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    command: >
+      sh -c "redis-server /usr/local/etc/redis/redis.conf --requirepass $(cat /run/secrets/redis_password)"
+
+secrets:
+  redis_password:
+    file: ../secrets/redis/password
