@@ -11,7 +11,8 @@ services:
   auth-service:
     build:
       context: .
-      dockerfile: ./services/auth/Dockerfile
+      dockerfile: services/auth/Dockerfile
+
     image: auth-service:prod
     container_name: auth-service
     env_file:
@@ -25,7 +26,7 @@ services:
   swipe-service:
     build:
       context: .
-      dockerfile: ./services/swipe/Dockerfile
+      dockerfile: services/swipe/Dockerfile
     image: swipe-service:prod
     container_name: swipe-service
     env_file:
@@ -41,7 +42,7 @@ services:
   stack-service:
     build:
       context: .
-      dockerfile: ./services/stack/Dockerfile
+      dockerfile: services/stack/Dockerfile
     image: stack-service:prod
     container_name: stack-service
     env_file:
@@ -57,7 +58,7 @@ services:
   profile-service:
     build:
       context: .
-      dockerfile: ./services/profile/Dockerfile
+      dockerfile: services/profile/Dockerfile
     image: profile-service:prod
     container_name: profile-service
     env_file:

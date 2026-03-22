@@ -25,16 +25,16 @@ func NewHandlerGrpc(s IServiceGrpc) *HandlerGrpc {
 	return &HandlerGrpc{service: s}
 }
 
-func (h *HandlerGrpc) CreateUser(ctx context.Context, req *grpc_auth.RequestSignTokens) (*grpc_auth.ResponseSignTokens, error) {
+func (h *HandlerGrpc) SignTokens(ctx context.Context, req *grpc_auth.RequestSignTokens) (*grpc_auth.ResponseSignTokens, error) {
 	entity, errMapper := mapper.FromAPIRegistrationToRegistration(req)
 	if errMapper != nil {
-		slog.Error(fmt.Sprintf("error: %s data:%s", errMapper.Error(), req))
+		slog.Error(fmt.Sprintf("error: %s request data", errMapper.Error()))
 		return nil, errMapper
 	}
 	err := h.service.Registrations(ctx, entity)
 
 	if err != nil {
-		slog.Error(fmt.Sprintf("error: %s data:%s", err.Error(), req))
+		slog.Error(fmt.Sprintf("error: %s request data", err.Error()))
 		return nil, err
 	}
 

@@ -1,4 +1,9 @@
 
+Warning:
+Архитектура и workflow на данный момент устаревшие. При разработке было решено преейти на другие решения:
+  - Auth service больше не отвечает за Create User - Auth service только работает с jwt: валидация, создание
+  - Auth service валидирует токены по gRPC в middleware каждого сервиса, а не через nginx как раньше
+
 ## Architecture
 ```mermaid
 flowchart TB
@@ -187,6 +192,11 @@ sequenceDiagram
         Gateway-->>Client: ok
     end
 ```
+
+Нагрузочное тестирование:
+![Нагрузочное тестированик](assets/load_test.jpg)
+
+<a href="./tests/results.md">Other tests results</a>
 
 For future:
 - Add photo 

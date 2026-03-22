@@ -40,7 +40,7 @@ func (h *Handler) CreateProfile(c *echo.Context) error {
 
 	errService := h.service.CreateProfile(c.Request().Context(), entity)
 	if errService != nil {
-		slog.Error(fmt.Sprintf("error: %s data:%s", errService.Error(), entity))
+		slog.Error(fmt.Sprintf("error: %s request data", errService.Error()))
 		return c.JSON(http.StatusInternalServerError, "Internal server error")
 	}
 

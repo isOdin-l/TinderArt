@@ -1,5 +1,9 @@
 !.gitignore
 *.env
+*.conf
+
+!*.example.env
+!*example.conf
+
 data/
 secrets/
-*.conf
