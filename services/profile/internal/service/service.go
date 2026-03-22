@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -88,7 +89,7 @@ func (s *Service) CreateProfile(ctx context.Context, profile *entities.Profile) 
 	}
 
 	// Create uuid for favart
-	for idx := range len(profile.FavArtStyles) {
+	for idx := range profile.FavArtStyles {
 		profile.FavArtStylesIds[idx], errPrep = uuid.NewV7()
 		if errPrep != nil {
 			return errPrep
@@ -96,7 +97,7 @@ func (s *Service) CreateProfile(ctx context.Context, profile *entities.Profile) 
 	}
 
 	// Create photos data
-	for idx := range len(profile.PhotoFiles) {
+	for idx := range profile.PhotoFiles {
 		profile.PhotosIds[idx], errPrep = uuid.NewV7()
 		if errPrep != nil {
 			return errPrep
@@ -143,7 +144,7 @@ func (s *Service) CreateProfile(ctx context.Context, profile *entities.Profile) 
 	}
 
 	// Call Auth by gRPC to sign refresh and access tokens
-	result, errCall := s.grpc_client.CreateUser(ctx, &grpc_auth.CreateUserRequest{
+	result, errCall := s.grpc_client.SignTokens(ctx, &grpc_auth.RequestSignTokens{
 		UserId: profile.UserId.String(),
 	})
 	if errCall != nil {
@@ -157,7 +158,7 @@ func (s *Service) CreateProfile(ctx context.Context, profile *entities.Profile) 
 	return nil
 }
 func (s *Service) GetProfile(ctx context.Context, userId uuid.UUID) (*entities.Profile, error) {
-	cacheKey := fmt.Sprintf("profile:%s", userId.String())
+	cacheKey := fmt.Sprintf("profile:%s", userId)
 
 	// Try to get user from redis
 	userCache, errSearch := s.cache.Get(ctx, cacheKey)
@@ -257,8 +258,10 @@ func (s *Service) GetStack(ctx context.Context, userId uuid.UUID) (*entities.Pro
 	if errRepo != nil {
 		return nil, errRepo
 	}
-
-	return entity, s.cache.RPush(ctx, cacheKey, entity.Matches)
+	if len(entity.Matches) != 0 {
+		return entity, s.cache.RPush(ctx, cacheKey, entity.Matches)
+	}
+	return entity, errors.New("no rows in result set")
 }
 
 func (s *Service) genPasswordHash(password string) (string, error) {

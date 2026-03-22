@@ -4,9 +4,6 @@ services:
     container_name: db_profiles
     restart: always
 
-    ports:
-      - "5432:5432"
-
     secrets:
       - db_profile_user
       - db_profile_password
@@ -19,7 +16,6 @@ services:
 
     volumes:
       - ../../data/ps_db_profiles:/var/lib/postgresql
-      - ../../migrations/postgres/db_profiles/20260319164700_initial.sql:/docker-entrypoint-initdb.d/20260319164700_initial.sql
 
     networks:
       - tindart
@@ -32,7 +28,7 @@ services:
         ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 10s
 
 secrets:

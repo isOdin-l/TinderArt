@@ -2,8 +2,6 @@ package api
 
 import (
 	"mime/multipart"
-
-	"github.com/google/uuid"
 )
 
 // Request
@@ -22,7 +20,7 @@ type RequestCreateaProfile struct {
 }
 
 type RequestGetProfile struct {
-	UserId uuid.UUID `json:"user_id"`
+	UserId string `json:"user_id"`
 }
 
 type RequestUpdateProfile struct {

@@ -6,18 +6,16 @@ import (
 )
 
 func FromApiSwipeToEntity(req *api.CreateSwipeRequest) *entities.Swipe {
-	if req.UserId.String() > req.TargetId.String() {
-		return &entities.Swipe{
-			UserId:    req.UserId,
-			TargetId:  req.TargetId,
-			Decision1: &req.Decision,
-			Decision2: nil,
-		}
-	}
 	return &entities.Swipe{
-		UserId:    req.TargetId,
-		TargetId:  req.UserId,
-		Decision1: nil,
-		Decision2: &req.Decision,
+		TargetId:  req.TargetId,
+		Decision1: &req.Decision,
+		Decision2: nil,
+	}
+}
+
+func ValidateSwipeStruct(ent *entities.Swipe) {
+	if ent.UserId.String() <= ent.TargetId.String() {
+		ent.UserId, ent.TargetId = ent.TargetId, ent.UserId
+		ent.Decision1, ent.Decision2 = ent.Decision2, ent.Decision1
 	}
 }

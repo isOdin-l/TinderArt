@@ -2,10 +2,8 @@ services:
   kafka:
     image: apache/kafka:4.0.2-rc3
     container_name: kafka
-    ports:
-      - "9092:9092"
     env_file:
-      - ../configs/kafka.env
+      - ./kafka.env
     volumes:
       - ../../data/kafka:/var/lib/kafka/data
     healthcheck:
@@ -16,7 +14,7 @@ services:
         ]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
     networks:
       - tindart
 
@@ -27,7 +25,7 @@ services:
       kafka:
         condition: service_healthy
     volumes:
-      - ../configs/create-topics.sh:/create-topics.sh
+      - ./create-topics.sh:/create-topics.sh
     entrypoint: ["/bin/bash", "/create-topics.sh"]
     networks:
       - tindart

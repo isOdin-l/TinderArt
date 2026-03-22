@@ -1,5 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
+CREATE EXTENSION IF NOT EXISTS "postgis";
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DO $$
@@ -79,10 +80,10 @@ CREATE INDEX IF NOT EXISTS idx_swipes_user1 ON swipes(user_id_1);
 CREATE INDEX IF NOT EXISTS idx_swipes_user2 ON swipes(user_id_2);
 -- +goose StatementEnd
 
+
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE profiles;
-DROP TABLE photos;
 DROP TABLE swipes;
 DROP TABLE jwt_tokens;
 DROP TABLE fav_art_styles;

@@ -21,27 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type CreateUserRequest struct {
+type RequestSignTokens struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateUserRequest) Reset() {
-	*x = CreateUserRequest{}
+func (x *RequestSignTokens) Reset() {
+	*x = RequestSignTokens{}
 	mi := &file_auth_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateUserRequest) String() string {
+func (x *RequestSignTokens) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateUserRequest) ProtoMessage() {}
+func (*RequestSignTokens) ProtoMessage() {}
 
-func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *RequestSignTokens) ProtoReflect() protoreflect.Message {
 	mi := &file_auth_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,19 +53,19 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
-func (*CreateUserRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use RequestSignTokens.ProtoReflect.Descriptor instead.
+func (*RequestSignTokens) Descriptor() ([]byte, []int) {
 	return file_auth_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *CreateUserRequest) GetUserId() string {
+func (x *RequestSignTokens) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-type CreateUserResponse struct {
+type ResponseSignTokens struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
@@ -73,20 +73,20 @@ type CreateUserResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateUserResponse) Reset() {
-	*x = CreateUserResponse{}
+func (x *ResponseSignTokens) Reset() {
+	*x = ResponseSignTokens{}
 	mi := &file_auth_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateUserResponse) String() string {
+func (x *ResponseSignTokens) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateUserResponse) ProtoMessage() {}
+func (*ResponseSignTokens) ProtoMessage() {}
 
-func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
+func (x *ResponseSignTokens) ProtoReflect() protoreflect.Message {
 	mi := &file_auth_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -98,19 +98,19 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
-func (*CreateUserResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ResponseSignTokens.ProtoReflect.Descriptor instead.
+func (*ResponseSignTokens) Descriptor() ([]byte, []int) {
 	return file_auth_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateUserResponse) GetAccessToken() string {
+func (x *ResponseSignTokens) GetAccessToken() string {
 	if x != nil {
 		return x.AccessToken
 	}
 	return ""
 }
 
-func (x *CreateUserResponse) GetRefreshToken() string {
+func (x *ResponseSignTokens) GetRefreshToken() string {
 	if x != nil {
 		return x.RefreshToken
 	}
@@ -211,9 +211,9 @@ const file_auth_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
 	"auth.proto\x12\x04grpc\",\n" +
-	"\x11CreateUserRequest\x12\x17\n" +
+	"\x11RequestSignTokens\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\\\n" +
-	"\x12CreateUserResponse\x12!\n" +
+	"\x12ResponseSignTokens\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\"4\n" +
 	"\x0fValidateRequest\x12!\n" +
@@ -222,7 +222,7 @@ const file_auth_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId2\x89\x01\n" +
 	"\vAuthService\x12?\n" +
 	"\n" +
-	"CreateUser\x12\x17.grpc.CreateUserRequest\x1a\x18.grpc.CreateUserResponse\x129\n" +
+	"SignTokens\x12\x17.grpc.RequestSignTokens\x1a\x18.grpc.ResponseSignTokens\x129\n" +
 	"\bValidate\x12\x15.grpc.ValidateRequest\x1a\x16.grpc.ValidateResponseB\tZ\a../authb\x06proto3"
 
 var (
@@ -239,15 +239,15 @@ func file_auth_proto_rawDescGZIP() []byte {
 
 var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_auth_proto_goTypes = []any{
-	(*CreateUserRequest)(nil),  // 0: grpc.CreateUserRequest
-	(*CreateUserResponse)(nil), // 1: grpc.CreateUserResponse
+	(*RequestSignTokens)(nil),  // 0: grpc.RequestSignTokens
+	(*ResponseSignTokens)(nil), // 1: grpc.ResponseSignTokens
 	(*ValidateRequest)(nil),    // 2: grpc.ValidateRequest
 	(*ValidateResponse)(nil),   // 3: grpc.ValidateResponse
 }
 var file_auth_proto_depIdxs = []int32{
-	0, // 0: grpc.AuthService.CreateUser:input_type -> grpc.CreateUserRequest
+	0, // 0: grpc.AuthService.SignTokens:input_type -> grpc.RequestSignTokens
 	2, // 1: grpc.AuthService.Validate:input_type -> grpc.ValidateRequest
-	1, // 2: grpc.AuthService.CreateUser:output_type -> grpc.CreateUserResponse
+	1, // 2: grpc.AuthService.SignTokens:output_type -> grpc.ResponseSignTokens
 	3, // 3: grpc.AuthService.Validate:output_type -> grpc.ValidateResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type

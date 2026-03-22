@@ -5,15 +5,15 @@ package grpc;
 option go_package = "../auth";
 
 service AuthService {
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc SignTokens(RequestSignTokens) returns (ResponseSignTokens);
   rpc Validate(ValidateRequest) returns (ValidateResponse);
 }
 
-message CreateUserRequest {
+message RequestSignTokens {
   string user_id = 1; // UUID
 }
 
-message CreateUserResponse {
+message ResponseSignTokens {
   string access_token = 1;
   string refresh_token = 2;
 }

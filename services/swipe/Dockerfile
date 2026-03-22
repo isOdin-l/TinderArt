@@ -2,7 +2,7 @@ FROM golang:1.26.0-alpine3.23 AS builder
 
 WORKDIR /app
 
-COPY ../../. .
+COPY . .
 
 WORKDIR /app/services/swipe
 

@@ -9,9 +9,6 @@ services:
       - db_swipes_password
       - db_swipes_db
 
-    ports:
-      - "5431:5432"
-
     environment:
       POSTGRES_USER_FILE: /run/secrets/db_swipes_user
       POSTGRES_PASSWORD_FILE: /run/secrets/db_swipes_password
@@ -20,7 +17,6 @@ services:
     volumes:
       #- ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/000001_init.up.sql
       - ../../data/ps_db_swipes:/var/lib/postgresql
-      - ../../migrations/postgres/db_swipes/20260319203500_initial.sql:/docker-entrypoint-initdb.d/20260319203500_initial.sql
     networks:
       - tindart
     healthcheck:

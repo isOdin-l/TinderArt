@@ -1,21 +1,21 @@
 include:
-  - path: ./compose_files/s3.yml
-  - path: ./compose_files/db_swipes.yml
-  - path: ./compose_files/db_profiles.yml
-  - path: ./compose_files/cache_db.yml
-  - path: ./compose_files/msg_broker.yml
-
-  - path: ./compose_files/nginx.yml
+  - path: ./infra/rustfs/rustfs.yml
+  - path: ./infra/db_swipes/db_swipes.yml
+  - path: ./infra/db_profiles/db_profiles.yml
+  - path: ./infra/redis/redis.yml
+  - path: ./infra/kafka/kafka.yml
+  - path: ./infra/goose-migration/goose.yml
+  - path: ./infra/nginx/nginx.yml
 
 services:
   auth-service:
-    image: auth-service:dev-0.2
+    build:
+      context: .
+      dockerfile: ./services/auth/Dockerfile
+    image: auth-service:prod
     container_name: auth-service
-    ports:
-      - "8000:8000" # HTTP port - delete after dev
-      - "7000:7000" # gRPC port - delete after dev
     env_file:
-      - ./configs/services/auth.env
+      - ./services/auth/auth.env
     networks:
       - tindart
     depends_on:
@@ -23,12 +23,13 @@ services:
         condition: service_healthy
 
   swipe-service:
-    image: swipe-service:dev-0.5
+    build:
+      context: .
+      dockerfile: ./services/swipe/Dockerfile
+    image: swipe-service:prod
     container_name: swipe-service
-    ports:
-      - "8001:8001" # HTTP port - delete after dev
     env_file:
-      - ./configs/services/swipe.env
+      - ./services/swipe/swipe.env
     networks:
       - tindart
     depends_on:
@@ -36,11 +37,15 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+
   stack-service:
-    image: stack-service:dev-0.5
+    build:
+      context: .
+      dockerfile: ./services/stack/Dockerfile
+    image: stack-service:prod
     container_name: stack-service
     env_file:
-      - ./configs/services/stack.env
+      - ./services/stack/stack.env
     networks:
       - tindart
     depends_on:
@@ -48,13 +53,15 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+
   profile-service:
-    image: profile-service:dev-0.9
+    build:
+      context: .
+      dockerfile: ./services/profile/Dockerfile
+    image: profile-service:prod
     container_name: profile-service
-    ports:
-      - "8002:8002" # HTTP port - delete after dev
     env_file:
-      - ./configs/services/profile.env
+      - ./services/profile/profile.env
     networks:
       - tindart
     depends_on:

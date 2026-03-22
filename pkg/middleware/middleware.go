@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"errors"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -25,6 +28,7 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
+				slog.Error(fmt.Sprintf("error: %s data:%s", errors.New("missing authorization header"), authHeader))
 				return c.JSON(http.StatusUnauthorized, map[string]string{
 					"error": "missing authorization header",
 				})
@@ -33,8 +37,9 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 			// delete Bearer part token
 			token := strings.TrimPrefix(authHeader, "Bearer ")
 			if token == authHeader {
+				slog.Error(fmt.Sprintf("error: %s data:%s", errors.New("invalid token1"), token))
 				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid token1",
+					"error": "invalid token",
 				})
 			}
 
@@ -44,8 +49,9 @@ func (m *Middleware) Validation() echo.MiddlewareFunc {
 			})
 
 			if errVal != nil {
+				slog.Error(fmt.Sprintf("error: %s data:%s", errVal.Error(), response))
 				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": errVal.Error(),
+					"error": "invalid token",
 				})
 			}
 

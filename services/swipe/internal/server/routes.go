@@ -19,5 +19,5 @@ func CreateRoutes(router *echo.Echo, h IHandler, md IMiddleware) {
 	router.Use(middleware.Recover())
 	router.Use(md.Validation()) // Validate token in Authorization header and put it into context
 
-	router.POST("/swipe", h.CreateSwipe)
+	router.POST("/", h.CreateSwipe)
 }

@@ -7,13 +7,11 @@ services:
     secrets:
       - redis_password
 
-    ports:
-      - "6379:6379"
     networks:
       - tindart
 
     volumes:
-      - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
       - ../../data/redis:/data
 
     healthcheck:
@@ -24,7 +22,7 @@ services:
         ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
     command: >
       sh -c "redis-server /usr/local/etc/redis/redis.conf --requirepass $(cat /run/secrets/redis_password)"

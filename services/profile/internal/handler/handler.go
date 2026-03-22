@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -31,6 +32,7 @@ func NewHandler(service IService) *Handler {
 func (h *Handler) CreateProfile(c *echo.Context) error {
 	var req api.RequestCreateaProfile
 	if errBind := c.Bind(&req); errBind != nil {
+		slog.Error(fmt.Sprintf("error: %s data: request data", errBind.Error()))
 		return c.JSON(http.StatusBadRequest, "invalid data")
 	}
 
@@ -38,7 +40,8 @@ func (h *Handler) CreateProfile(c *echo.Context) error {
 
 	errService := h.service.CreateProfile(c.Request().Context(), entity)
 	if errService != nil {
-		return c.JSON(http.StatusInternalServerError, errService.Error())
+		slog.Error(fmt.Sprintf("error: %s data:%s", errService.Error(), entity))
+		return c.JSON(http.StatusInternalServerError, "Internal server error")
 	}
 
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPICreateProfile(entity))
@@ -47,12 +50,21 @@ func (h *Handler) CreateProfile(c *echo.Context) error {
 func (h *Handler) GetProfile(c *echo.Context) error {
 	var req api.RequestGetProfile
 	if errBind := c.Bind(&req); errBind != nil {
+		slog.Error(fmt.Sprintf("error: %s data:%s", errBind.Error(), req))
 		return c.JSON(http.StatusBadRequest, "invalid data")
 	}
 
-	profile, errService := h.service.GetProfile(c.Request().Context(), mapper.FromAPIGetProfileToEntity(&req))
+	// Mapping string to uuid
+	entity, errMap := mapper.FromAPIGetProfileToEntity(&req)
+	if errMap != nil {
+		slog.Error(fmt.Sprintf("error: %s data:%s", errMap.Error(), entity))
+		return c.JSON(http.StatusInternalServerError, "internal server error")
+	}
+
+	profile, errService := h.service.GetProfile(c.Request().Context(), entity)
 	if errService != nil {
-		return c.JSON(http.StatusInternalServerError, errService.Error())
+		slog.Error(fmt.Sprintf("error: %s data:%s", errService.Error(), profile))
+		return c.JSON(http.StatusInternalServerError, "internal server error")
 	}
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPIGetProfile(profile))
 }
@@ -60,6 +72,7 @@ func (h *Handler) GetProfile(c *echo.Context) error {
 func (h *Handler) UpdateProfile(c *echo.Context) error {
 	var req api.RequestUpdateProfile
 	if errBind := c.Bind(&req); errBind != nil {
+		slog.Error(fmt.Sprintf("error: %s data:%s", errBind.Error(), req))
 		return c.JSON(http.StatusBadRequest, "invalid data")
 	}
 
@@ -70,6 +83,7 @@ func (h *Handler) UpdateProfile(c *echo.Context) error {
 
 	profile, errService := h.service.UpdateProfile(c.Request().Context(), entity)
 	if errService != nil {
+		slog.Error(fmt.Sprintf("error: %s data:%s", errService.Error(), profile))
 		return c.JSON(http.StatusInternalServerError, "Internal server error")
 	}
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPIGetProfile(profile)) // return profile data
@@ -78,8 +92,9 @@ func (h *Handler) UpdateProfile(c *echo.Context) error {
 func (h *Handler) DeleteProfile(c *echo.Context) error {
 	// Get from context userId
 	userId := c.Get("user_id").(uuid.UUID)
-	slog.Info(userId.String())
+
 	if errServ := h.service.DeleteProfile(c.Request().Context(), userId); errServ != nil {
+		slog.Error(fmt.Sprintf("error: %s data:%s", errServ.Error(), userId))
 		return c.JSON(http.StatusInternalServerError, "Internal server error")
 	}
 
@@ -91,7 +106,8 @@ func (h *Handler) GetStack(c *echo.Context) error {
 
 	entity, errServer := h.service.GetStack(c.Request().Context(), userId)
 	if errServer != nil {
-		return c.JSON(http.StatusInternalServerError, errServer.Error())
+		slog.Error(fmt.Sprintf("error: %s data:%s", errServer.Error(), entity))
+		return c.JSON(http.StatusInternalServerError, "Internal server error")
 	}
 
 	return c.JSON(http.StatusOK, mapper.FromEntityToAPIGetStack(entity))

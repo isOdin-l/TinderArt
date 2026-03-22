@@ -25,10 +25,14 @@ func FromAPILoginToLogin(req *api.Login) *entities.Login {
 	}
 }
 
-func FromAPIRegistrationToRegistration(req *grpc_auth.CreateUserRequest) *entities.Registration {
-	return &entities.Registration{
-		UserId: uuid.MustParse(req.GetUserId()),
+func FromAPIRegistrationToRegistration(req *grpc_auth.RequestSignTokens) (*entities.Registration, error) {
+	userId, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, err
 	}
+	return &entities.Registration{
+		UserId: userId,
+	}, nil
 }
 
 func FromAPIRefreshTokenToRefreshToken(req *api.RefreshAccessToken) *entities.RefreshAccessToken {
@@ -52,8 +56,8 @@ func FromAuthResultToTokenResponse(result *entities.AuthResult) *api.TokenRespon
 	}
 }
 
-func FromRegistrationToTokenResponse(req *entities.Registration) *grpc_auth.CreateUserResponse {
-	return &grpc_auth.CreateUserResponse{
+func FromRegistrationToTokenResponse(req *entities.Registration) *grpc_auth.ResponseSignTokens {
+	return &grpc_auth.ResponseSignTokens{
 		AccessToken:  req.AccessToken,
 		RefreshToken: req.RefreshToken,
 	}

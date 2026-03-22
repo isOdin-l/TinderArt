@@ -6,8 +6,8 @@ import (
 	"github.com/isOdin-l/TinderArt/services/profile/pkg/api"
 )
 
-func FromAPIGetProfileToEntity(req *api.RequestGetProfile) uuid.UUID {
-	return req.UserId
+func FromAPIGetProfileToEntity(req *api.RequestGetProfile) (uuid.UUID, error) {
+	return uuid.Parse(req.UserId)
 }
 
 func FromAPIUpdateProfileToEntity(req *api.RequestUpdateProfile) *entities.UpdateProfile {
