@@ -2,9 +2,7 @@
 ```mermaid
 sequenceDiagram
     Client->>Gateway:       POST /register
-    Gateway->>Auth:         register(userData)
-
-    Auth->>Profile:         gRPC - createUser(userData)
+    Gateway->>Profile:         register(profileData)
 
     Profile->>PostgreSQL:   insert user
     alt Already Exists
@@ -12,9 +10,10 @@ sequenceDiagram
         Profile->>Gateway: Error
         Gateway->>Client: Error
     else Insertion OK
-        Profile-->>Auth:        gRPC - ok
+        Profile-->>Auth:        gRPC - sign-tokens(profile -data)
         Auth->>PostgreSQL:      save refresh token
-        Auth-->>Client:         access + refresh
+        Auth-->>Profile:        gRPC - ok
+        Profile->>Client:       profile data
     end
 ```
 
@@ -25,24 +24,24 @@ sequenceDiagram
 sequenceDiagram
     participant Client
     participant Gateway     as API Gateway
-    participant Auth        as Auth-Service
     participant Profile     as Profile-Service
+    participant Auth        as Auth-Service
     participant Cache       as Redis
     participant DB          as PostgreSQL+PostGIS
 
     Note over Client, Gateway: 1 - Запрос от Клиента
     Client->>Gateway: GET /profile
+    Gateway->>Profile: getProfile(user_id)
 
     Note over Gateway, Auth: 2 - Валидация по access_token
-    Gateway->>Auth: validate(access_token)
-    Auth-->>Gateway: validation result
+    Profile->>Auth: gRPC validate(access_token)
+    Auth-->>Profile: validation result
 
     alt Unauthorized
         Gateway-->>Client: Unauthorized
     else Authorized
         Note over Gateway, DB: 3 - Получение профиля
         
-        Gateway->>Profile: getProfile(user_id)
         Profile->>Cache: get(user_id)
 
         alt Cache hit
@@ -74,24 +73,24 @@ sequenceDiagram
 sequenceDiagram
     participant Client
     participant Gateway         as API Gateway
-    participant Auth            as Auth-Service
     participant Profile         as Profile-Service
+    participant Auth            as Auth-Service
     participant DB              as PostgreSQL
     participant Cache           as Redis
 
     Client->>Gateway: PATCH /profile
-    Gateway->>Auth: validate(access_token)
-    Auth-->>Gateway: validation result
+    Gateway->>Profile: updateProfile(data)
+    Profile->>Auth: gRPC validate(access_token)
+    Auth-->>Profile: validation result
 
     alt Unauthorized
-        Gateway-->>Client: Unauthorized
+        Profile-->>Client: Unauthorized
     else Authorized
-        Gateway->>Profile: updateProfile(data)
 
         Profile->>DB: UPDATE user's preferences
         DB-->>Profile: ok
 
-        Profile->>Cache: DEL "pop_":{user_id}
+        Profile->>Cache: Update "profile:{user_id}"
 
         Profile-->>Gateway: ok
         Gateway-->>Client: ok
@@ -105,21 +104,20 @@ sequenceDiagram
 sequenceDiagram
     participant Client          as Client
     participant Gateway         as API Gateway
-    participant Auth            as Auth-Service
     participant Profile         as Profile-Service
+    participant Auth            as Auth-Service
     participant DB              as PostgreSQL
     participant S3              as RustFS
     participant Cache           as Redis
 
     Client->>Gateway: DELETE /profile
-    Gateway->>Auth: validate(access_token)
-    Auth-->>Gateway: validation result
+    Gateway->>Profile: deleteProfile(user_id)
+    Profile->>Auth: validate(access_token)
+    Auth-->>Profile: validation result
 
     alt Unauthorized
-        Gateway-->>Client: Unauthorized
+        Profile-->>Client: Unauthorized
     else Authorized
-        Gateway->>Profile: deleteProfile(user_id)
-
         Profile->>DB: get photos URLs
         DB-->>Profile: photos
 
@@ -130,46 +128,11 @@ sequenceDiagram
         Profile->>DB: DEL row by user_id
         DB-->>Profile: ok
 
-        Profile->>Cache: DEL "pop_":{user_id}
-        Profile->>Cache: DEL "stack_":{user_id}
+        Profile->>Cache: DEL "profile:{user_id}"
+        Profile->>Cache: DEL "stack:{user_id}"
 
         Profile-->>Gateway: ok
-        Gateway-->>Client: HTTP-204 
-    end
-```
-
-<br>
-
-## Update preferences
-```mermaid
-sequenceDiagram
-    participant Client      as Client
-    participant Gateway     as API Gateway
-    participant Auth        as Auth-Service
-    participant Profile     as Profile-Service
-    participant DB          as PostgreSQL
-    participant Cache       as Redis
-
-    Client->>Gateway: PATCH /preferences
-    Gateway->>Auth: validate(access_token)
-    Auth-->>Gateway: validation result
-
-    alt Unauthorized
-        Gateway-->>Client: Unauthorized
-    else Authorized
-        Gateway->>Profile: updatePreferences(data)
-        Profile->>DB: UPDATE preferences
-        DB->>Profile: Results
-        alt Error
-            Profile->>Gateway: Error
-            Gateway->>Client: Error
-        else OK
-            Profile->>Cache: DEL "stack_":{user_id}
-            Profile->>Cache: DEL "pop_":{user_id}
-
-            Profile-->>Gateway: ok
-            Gateway-->>Client: ok
-        end
+        Gateway-->>Client: ok 
     end
 ```
 
@@ -178,13 +141,13 @@ sequenceDiagram
 ## Generate Daily Stack
 ```mermaid
 sequenceDiagram
-    participant Cron
+    participant Timer as InternalTimer
     participant Stack as DailyStack-Service
     participant DB as PostgreSQL+PostGIS
     participant Cache as Redis
 
-    Note over Cron,Stack: 1 - Старт сервиса по Cron каждый день
-    Cron->>Stack: trigger daily stack generation
+    Note over Timer,Stack: 1 - Старт сервиса по Timer каждые 24 часа
+    Timer->>Stack: trigger daily stack generation
 
     Note over Stack,DB: 2 - Получение подходящих пользователей
     Stack->>DB: Получение пользователей по критериям
@@ -201,25 +164,26 @@ sequenceDiagram
 sequenceDiagram
     participant Client
     participant Gateway     as API Gateway
-    participant Auth        as Auth-Service
     participant Profile     as Profile-Service
+    participant Auth        as Auth-Service
     participant Cache       as Redis
     participant DB          as PostgreSQL+PostGIS
 
     Note over Client, Gateway: 1 - Запрос от Клиента
     Client->>Gateway: GET /profile
 
+    Gateway->>Profile: getStack(for user_id)
+    
     Note over Gateway, Auth: 2 - Валидация по access_token
-    Gateway->>Auth: validate(access_token)
-    Auth-->>Gateway: validation result
+    Profile->>Auth: validate(access_token)
+    Auth-->>Profile: validation result
 
     alt Unauthorized
-        Gateway-->>Client: Unauthorized
+        Profile-->>Client: Unauthorized
     else Authorized
         Note over Gateway, DB: 3 - Получение профиля
         
-        Gateway->>Profile: getStack(for user_id)
-        Profile->>Cache: get("stack_"$user_id)
+        Profile->>Cache: get("stack:{$user_id}")
 
         alt Cache hit
             Cache-->>Profile: part of stack
@@ -229,7 +193,7 @@ sequenceDiagram
             Profile->>DB: Get profiles from DB
             alt Found
                 DB-->>Profile: profiles
-                Profile->>Cache: set("stack_"$user_id, profiles)
+                Profile->>Cache: set("stack:{$user_id} -> [userId, userId,...])
 
                 Profile-->>Gateway: part of stack
                 Gateway-->>Client: part of stack
@@ -275,8 +239,8 @@ Auth-->>Client:         new access / error
 sequenceDiagram
     participant Client
     participant Gateway as API Gateway
-    participant Auth as Auth-Service
     participant Swipe as Swipe-Service
+    participant Auth as Auth-Service
     participant DB as PostgreSQL
     participant Kafka
     participant Notify as Notify-Service
@@ -284,13 +248,13 @@ sequenceDiagram
 
     Client->>Gateway: POST /swipe
 
-    Gateway->>Auth: validate(access_token)
-    Auth-->>Gateway: validation result
+    Gateway->>Swipe: createSwipe(user1_id, user2_id)
+    Swipe->>Auth: validate(access_token)
+    Auth-->>Swipe: validation result
 
     alt Unauthorized
-        Gateway-->>Client: 401 Unauthorized
+        Swipe-->>Client: Unauthorized
     else Authorized
-        Gateway->>Swipe: createSwipe(user1_id, user2_id)
 
         Swipe->>DB: INSERT swipe
         DB-->>Swipe: result

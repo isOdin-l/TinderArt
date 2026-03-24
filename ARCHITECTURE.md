@@ -1,0 +1,2 @@
+
+![Архитектура](assets/architecture.svg)
