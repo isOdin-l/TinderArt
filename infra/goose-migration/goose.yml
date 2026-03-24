@@ -36,14 +36,14 @@ services:
 
 secrets:
   profile_user:
-    file: ../secrets/db_profiles/user
+    file: ../secrets.example/db_profiles/user
   profile_password:
-    file: ../secrets/db_profiles/password
+    file: ../secrets.example/db_profiles/password
   profile_db:
-    file: ../secrets/db_profiles/db
+    file: ../secrets.example/db_profiles/db
   swipes_user:
-    file: ../secrets/db_swipes/user
+    file: ../secrets.example/db_swipes/user
   swipes_password:
-    file: ../secrets/db_swipes/password
+    file: ../secrets.example/db_swipes/password
   swipes_db:
-    file: ../secrets/db_swipes/db
+    file: ../secrets.example/db_swipes/db

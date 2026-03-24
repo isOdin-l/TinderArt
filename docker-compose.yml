@@ -16,7 +16,7 @@ services:
     image: auth-service:prod
     container_name: auth-service
     env_file:
-      - ./services/auth/auth.env
+      - ./services/auth/auth.example.env
     networks:
       - tindart
     depends_on:
@@ -30,7 +30,7 @@ services:
     image: swipe-service:prod
     container_name: swipe-service
     env_file:
-      - ./services/swipe/swipe.env
+      - ./services/swipe/swipe.example.env
     networks:
       - tindart
     depends_on:
@@ -46,7 +46,7 @@ services:
     image: stack-service:prod
     container_name: stack-service
     env_file:
-      - ./services/stack/stack.env
+      - ./services/stack/stack.example.env
     networks:
       - tindart
     depends_on:
@@ -62,7 +62,7 @@ services:
     image: profile-service:prod
     container_name: profile-service
     env_file:
-      - ./services/profile/profile.env
+      - ./services/profile/profile.example.env
     networks:
       - tindart
     depends_on:

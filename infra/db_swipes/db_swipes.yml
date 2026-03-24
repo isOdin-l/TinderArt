@@ -32,8 +32,8 @@ services:
 
 secrets:
   db_swipes_user:
-    file: ../secrets/db_swipes/user
+    file: ../secrets.example/db_swipes/user
   db_swipes_password:
-    file: ../secrets/db_swipes/password
+    file: ../secrets.example/db_swipes/password
   db_swipes_db:
-    file: ../secrets/db_swipes/db
+    file: ../secrets.example/db_swipes/db

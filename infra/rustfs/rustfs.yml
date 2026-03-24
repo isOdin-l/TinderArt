@@ -32,9 +32,9 @@ services:
 
 secrets:
   rustfs_access_key:
-    file: ../secrets/rustfs/access_key
+    file: ../secrets.example/rustfs/access_key
   rustfs_secret_key:
-    file: ../secrets/rustfs/secret_key
+    file: ../secrets.example/rustfs/secret_key
   # rustfs_region:
   #   file: ../secrets/rustfs/region
   # rustfs_console_enable:

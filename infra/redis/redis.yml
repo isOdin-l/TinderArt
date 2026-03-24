@@ -11,7 +11,7 @@ services:
       - tindart
 
     volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis.example.conf:/usr/local/etc/redis/redis.conf:ro
       - ../../data/redis:/data
 
     healthcheck:
@@ -29,4 +29,4 @@ services:
 
 secrets:
   redis_password:
-    file: ../secrets/redis/password
+    file: ../secrets.example/redis/password

@@ -158,7 +158,6 @@ Gateway -->|8| Client
 ## Generate Daily Stack
 ```mermaid
 flowchart LR
-classDef redis fill:#d82c20,stroke:#333,stroke-width:2px,color:white;
 
 Stack["DailyStack-Service"]
 Cache[("Redis")]:::redis
