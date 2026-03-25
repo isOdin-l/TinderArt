@@ -1,8 +1,27 @@
 # Matching platform
 
+TinderArt — high-load backend-сервис для мэтчинга дизайнеров и авторов, реализующий подбор по заданным критериям с упором на масштабируемость, низкую задержку и эффективную обработку запросов.
+
+
+## Stack
+| Component | Techonoly |
+| ------ | ------ |
+| **Language** | Go 1.26 |
+| **REST** | [Echo](https://github.com/labstack/echo) | 
+| **gRPC** | [grpc](https://github.com/grpc/grpc-go) |
+| **Database (PostgreSQL)** | [jackc/pgx](https://github.com/jackc/pgx) |
+| **Type-safe work with sql code** | [sqlc](https://github.com/sqlc-dev/sqlc) |
+| **Migrations** | [Goose](https://github.com/pressly/goose)  |
+| **Containerization** | [Docker](https://docs.docker.com/engine/) |
+| **Redis** | [go-redis](https://github.com/redis/go-redis) |
+| **Kafka** | [kafka-go](https://github.com/segmentio/kafka-go)  |
+| **S3** | [aws-sdk](https://github.com/aws/aws-sdk-go-v2) |
+| **Load Tests** | [K6](https://github.com/grafana/k6)|
+| **Configuration** | [caarlos0/env](https://github.com/caarlos0/env)  |
+| **Authentication** | [golang-jwt/jwt](https://github.com/golang-jwt/jwt) |
+
+    
 ## Getting Started
-### Requirements
-- [Docker](https://docs.docker.com/engine)
 
 ```bash
 git clone https://github.com/isOdin-l/TinderArt && cd TinderArt
